@@ -2,7 +2,7 @@ CC := g++
 BIN_DIR := .
 BUILD_DIR := build
 SRC_EXT := cpp
-CFLAGS := -Wall -Werror
+CFLAGS := -Wall -Werror -std=c++1y
 LIB :=
 INCLUDES := -I src
 
@@ -34,7 +34,7 @@ test: $(TEST_TARGET)
 
 clean:
 	@echo " Cleaning...";
-	# @echo " $(RM) -r ./$(BUILD_DIR)"; $(RM) -r ./$(BUILD_DIR)
+	@echo " $(RM) -r ./$(BUILD_DIR)"; $(RM) -r ./$(BUILD_DIR)
 	# @echo " $(RM) ./$(CODE_TARGET) ./$(TEST_TARGET)"; $(RM) ./$(CODE_TARGET) ./$(TEST_TARGET)
 
 .PHONY: clean
