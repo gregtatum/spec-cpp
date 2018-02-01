@@ -1,4 +1,4 @@
-CC := g++
+CC := clang++
 BIN_DIR := .
 BUILD_DIR := build
 SRC_EXT := cpp
