@@ -1,28 +1,29 @@
 #include "vec.h"
+#include "option.h"
 #include <iostream>
-using namespace std;
 
-RustLike::Vec::Vec (int aCapacity) {
+namespace rusty {
+namespace vec {
+
+Vec::Vec (int aCapacity) {
   mLength = 0;
   mCapacity = aCapacity;
   mBuffer = new float[mCapacity];
 }
 
-RustLike::Vec::~Vec() {
-  // This doesn't appear to be running?
-  std::cout << "Deleting vec\n";
+Vec::~Vec() {
   delete [] mBuffer;
 }
 
-int RustLike::Vec::capacity () {
+int Vec::capacity () {
   return mCapacity;
 }
 
-int RustLike::Vec::len () {
+int Vec::len () {
   return mLength;
 }
 
-void RustLike::Vec::push (float aValue) {
+void Vec::push (float aValue) {
   mLength++;
   if (mLength > mCapacity) {
     // Double the buffer size.
@@ -50,10 +51,12 @@ void RustLike::Vec::push (float aValue) {
   mBuffer[mLength - 1] = aValue;
 }
 
-// std::
-// experimental::optional<float> RustLike::Vec::get (int aIndex) {
-//   // if (aIndex >= 0 && aIndex < mLength)
-//     return mBuffer[aIndex];
-//   // }
-//   // return {};
-// }
+rusty::option::Option Vec::get (int aIndex) {
+  if (aIndex >= 0 && aIndex < mLength) {
+    return rusty::option::some(&mBuffer[aIndex]);
+  }
+  return rusty::option::none();
+}
+
+} // vec
+} // rusty
