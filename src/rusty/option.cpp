@@ -35,6 +35,7 @@ Option none() {
 }
 
 void run_tests() {
+  test::suite("rusty::option");
   test::describe("rusty::option::Option");
   {
     float pi = 3.14159f;

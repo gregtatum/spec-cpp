@@ -60,6 +60,7 @@ rusty::option::Option Vec::get (int aIndex) {
 }
 
 void run_tests() {
+  test::suite("rusty::vec");
   test::describe("rusty::vec::Vec");
   {
     auto vec = rusty::vec::Vec(0);
