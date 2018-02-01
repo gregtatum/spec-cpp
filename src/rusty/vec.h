@@ -18,5 +18,7 @@ class Vec {
     rusty::option::Option get (int);
 };
 
+void run_tests();
+
 } // vec
 } // rusty

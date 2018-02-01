@@ -17,5 +17,7 @@ class Option {
 Option some(float*);
 Option none();
 
+void run_tests();
+
 } //option
 } //rusty
