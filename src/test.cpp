@@ -21,8 +21,8 @@ void assert(bool value, const std::string& message) {
 }
 
 void run_tests() {
-  test::suite("srt::test");
-  test::describe("src::test Assertions");
+  test::suite("src::test");
+  test::describe("Assertions");
   {
     test::assert(true, "Does not throw");
     // test::assert(false, "Uncomment to throw");

@@ -61,14 +61,14 @@ rusty::option::Option Vec::get (int aIndex) {
 
 void run_tests() {
   test::suite("rusty::vec");
-  test::describe("rusty::vec::Vec");
+  test::describe("Vec");
   {
     auto vec = rusty::vec::Vec(0);
     test::assertEq(vec.capacity(), 0, "The vector starts with 0 capacity");
     test::assertEq(vec.len(), 0, "The initial length is also 0.");
   }
 
-  test::describe("rusty::vec::Vec::push");
+  test::describe("Vec::push");
   {
     auto vec = rusty::vec::Vec(0);
 

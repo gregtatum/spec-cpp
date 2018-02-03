@@ -17,14 +17,14 @@ int addOneByReturns(const int* value) {
 
 void run_tests() {
   test::suite("features::pointers");
-  test::describe("features::pointers - stack values");
+  test::describe("stack values");
   {
     int value = 32;
     test::assertEq(value, 32, "Declaring a simple value puts it on the stack.");
     // Once the lexical scope goes away, the value will be popped off the stack.
   }
 
-  test::describe("features::pointers - puts a value on the heap");
+  test::describe("puts a value on the heap");
   {
     // Using the new operator reserves the space on the heap.
     int* value = new int;
@@ -35,7 +35,7 @@ void run_tests() {
     delete value;
   }
 
-  test::describe("features::pointers - the value on the stack is the memory address of the heap");
+  test::describe("the value on the stack is the memory address of the heap");
   {
     int* value = new int(0);
     test::assert(value != (int*) 0, "The value itself is a memory address, so it shouldn't equal our value.");
@@ -51,7 +51,7 @@ void run_tests() {
     (void)deletedValue;
   }
 
-  test::describe("features::pointers - multiple pointers point to the same place in memory");
+  test::describe("multiple pointers point to the same place in memory");
   {
     int* a = new int(32);
     int* b = a;
@@ -74,7 +74,7 @@ void run_tests() {
     // so we are all clean!
   }
 
-  test::describe("features::pointers - references");
+  test::describe("references");
   {
     int a = 32;
     int* a_ref = &a;
@@ -86,7 +86,7 @@ void run_tests() {
     test::assertEq(*a_ref, 50, "This is reflected in our own pointer.");
   }
 
-  test::describe("features::pointers - passing around pointers");
+  test::describe("passing around pointers");
   {
     int* value = new int(32);
 
