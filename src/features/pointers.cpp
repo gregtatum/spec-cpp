@@ -6,7 +6,7 @@ namespace features {
 namespace pointers {
 
 void addOneByMutation(int* value) {
-  *value = *value + 1;;
+  *value = *value + 1;
 }
 
 int addOneByReturns(const int* value) {
