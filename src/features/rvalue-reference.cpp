@@ -20,19 +20,17 @@ int addOneByRvalue(int&& value) {
 
 
 void run_tests() {
-  test::suite("features::rvalueReference");
+  test::suite("features::rvalueReference", []() {
+    test::describe("rvalue references", []() {
+      int&& value = (16 + 16);
+      test::assertEq(value, 32, "rvalue references point to temporary values");
+    });
 
-  test::describe("rvalue references");
-  {
-    int&& value = (16 + 16);
-    test::assertEq(value, 32, "rvalue references point to temporary values");
-  }
-
-  test::describe("rvalue references can be passed to functions");
-  {
-    int&& value = addOneByRvalue(16 + 16);
-    test::assertEq(value, 33, "The rvalue reference function added one.");
-  }
+    test::describe("rvalue references can be passed to functions", []() {
+      int&& value = addOneByRvalue(16 + 16);
+      test::assertEq(value, 33, "The rvalue reference function added one.");
+    });
+  });
 }
 
 } // rvalueReference

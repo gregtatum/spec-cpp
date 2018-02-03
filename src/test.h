@@ -9,8 +9,8 @@ static const std::string WHITE = "\033[27m";
 static const std::string BRIGHT_WHITE = "\033[97m";
 static const std::string RESET = "\033[0m";
 
-void suite(const std::string&);
-void describe(const std::string&);
+void suite(const std::string&, std::function<void ()>);
+void describe(const std::string&, std::function<void ()>);
 void assert(bool, const std::string&);
 void run_tests();
 

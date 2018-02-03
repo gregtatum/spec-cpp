@@ -60,39 +60,38 @@ rusty::option::Option Vec::get (int aIndex) {
 }
 
 void run_tests() {
-  test::suite("rusty::vec");
-  test::describe("Vec");
-  {
-    auto vec = rusty::vec::Vec(0);
-    test::assertEq(vec.capacity(), 0, "The vector starts with 0 capacity");
-    test::assertEq(vec.len(), 0, "The initial length is also 0.");
-  }
+  test::suite("rusty::vec", []() {
+    test::describe("Vec", []() {
+      auto vec = rusty::vec::Vec(0);
+      test::assertEq(vec.capacity(), 0, "The vector starts with 0 capacity");
+      test::assertEq(vec.len(), 0, "The initial length is also 0.");
+    });
 
-  test::describe("Vec::push");
-  {
-    auto vec = rusty::vec::Vec(0);
+    test::describe("Vec::push", []() {
+      auto vec = rusty::vec::Vec(0);
 
-    vec.push(1);
-    test::assertEq(vec.capacity(), 1, "The capacity is now 1");
-    test::assertEq(vec.len(), 1, "The length is also 1");
-    test::assertEq(*vec.get(0).unwrap(), 1.0f, "The value added is 1");
-    test::assert(vec.get(1).isNone(), "The second value is none");
+      vec.push(1);
+      test::assertEq(vec.capacity(), 1, "The capacity is now 1");
+      test::assertEq(vec.len(), 1, "The length is also 1");
+      test::assertEq(*vec.get(0).unwrap(), 1.0f, "The value added is 1");
+      test::assert(vec.get(1).isNone(), "The second value is none");
 
-    vec.push(2);
-    test::assertEq(vec.capacity(), 2, "The capacity is doubled after a push");
-    test::assertEq(vec.len(), 2, "The length is also doubled after a push");
-    test::assertEq(*vec.get(0).unwrap(), 1.0f, "The value was added");
-    test::assertEq(*vec.get(1).unwrap(), 2.0f, "The value was added");
-    test::assert(vec.get(2).isNone(), "The last value is none");
+      vec.push(2);
+      test::assertEq(vec.capacity(), 2, "The capacity is doubled after a push");
+      test::assertEq(vec.len(), 2, "The length is also doubled after a push");
+      test::assertEq(*vec.get(0).unwrap(), 1.0f, "The value was added");
+      test::assertEq(*vec.get(1).unwrap(), 2.0f, "The value was added");
+      test::assert(vec.get(2).isNone(), "The last value is none");
 
-    vec.push(3);
-    test::assertEq(vec.capacity(), 4, "The capacity is doubled after a push");
-    test::assertEq(vec.len(), 3, "The length is only incremented");
-    test::assertEq(*vec.get(0).unwrap(), 1.0f, "The value was added");
-    test::assertEq(*vec.get(1).unwrap(), 2.0f, "The value was added");
-    test::assertEq(*vec.get(2).unwrap(), 3.0f, "The value was added");
-    test::assert(vec.get(3).isNone(), "The last value is none");
-  }
+      vec.push(3);
+      test::assertEq(vec.capacity(), 4, "The capacity is doubled after a push");
+      test::assertEq(vec.len(), 3, "The length is only incremented");
+      test::assertEq(*vec.get(0).unwrap(), 1.0f, "The value was added");
+      test::assertEq(*vec.get(1).unwrap(), 2.0f, "The value was added");
+      test::assertEq(*vec.get(2).unwrap(), 3.0f, "The value was added");
+      test::assert(vec.get(3).isNone(), "The last value is none");
+    });
+  });
 }
 
 } // vec

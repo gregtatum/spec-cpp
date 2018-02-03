@@ -1,11 +1,10 @@
 #include <iostream>
+#include "test.h"
 #include "features/pointers.h"
 #include "features/lvalue-reference.h"
 #include "features/rvalue-reference.h"
-#include "rusty/vec.h"
 #include "rusty/option.h"
 #include "rusty/vec.h"
-#include "test.h"
 
 int main()
 {
