@@ -1,5 +1,6 @@
 #include <iostream>
 #include "test.h"
+#include "features/arrays.h"
 #include "features/pointers.h"
 #include "features/lvalue-reference.h"
 #include "features/rvalue-reference.h"
@@ -9,6 +10,7 @@
 int main()
 {
   test::run_tests();
+  features::arrays::run_tests();
   features::pointers::run_tests();
   features::lvalueReference::run_tests();
   features::rvalueReference::run_tests();

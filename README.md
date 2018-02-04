@@ -19,6 +19,54 @@ src::test
     ✔ Does not throw
     ✔ Equality does work
 
+features::arrays
+
+  arrays can be created on the stack.
+    ✔ An array was created, but it's still uninitialized. Acces
+    ✔ The value can be accessed, but its value could be anything. UNDEFINED BEHAVIOR
+    ✔ Value at index 0 can be accessed
+    ✔ Value at index 1 can be accessed
+    ✔ Value at index 2 can be accessed
+    ✔ Value at index 3 can be accessed
+    ✔ The compiler doesn't care if we unintentionally read values outside of the array. UNDEFINED BEHAVIOR
+  arrays can be initialized in one line
+    ✔ Value at index 0 can be accessed
+    ✔ Value at index 1 can be accessed
+    ✔ Value at index 2 can be accessed
+  arrays can be created through 'universal initialization'
+    ✔ Value at index 0 can be accessed
+    ✔ Value at index 1 can be accessed
+    ✔ Value at index 2 can be accessed
+  Arrays don't need to have every entry initialized
+    ✔ Value at index 0 can be accessed
+    ✔ Value at index 1 is not initialized
+  Static arrays are always initialized to 0.
+    ✔ The value is 0
+    ✔ The value is 0
+    ✔ The value is 0
+  Heap allocated arrays
+    ✔ Created 11 on the heap
+    ✔ Created 22 on the heap
+    ✔ Created 33 on the heap
+  Arrays can be passed to functions
+    ✔ One was added to array
+    ✔ One was added to array
+    ✔ One was added to array
+  Arrays can be treated like pointers, and the memory address is copied to the calling function
+    ✔ One was added to the first element
+    ✔ The rest of the array is not modified
+    ✔ The rest of the array is not modified
+  Pointer arithmetic works on arrays coerced to pointers
+    ✔ Can read the first element as a pointer
+    ✔ Can read the second element using pointer arithmetic
+    ✔ Can read the second element using pointer arithmetic
+  You can pass by references, but only at a fixed array size
+    ✔ First element not modified
+    ✔ Second element was modified because the function call returned an lvalue reference
+    ✔ The third element was not modified
+  Passing arrays is mainly type checking by the compiler, but then it copies the memory address of the array to the callee's arguments.
+    ✔ The memory values are the same.
+
 features::pointers
 
   stack values

@@ -17,9 +17,9 @@ void run_tests();
 template<typename T>
 void assertEq(T a, T b, const std::string& message) {
   if (a != b) {
-    std::cout << RED << "    𝘅 " << message << RESET << "\n";
-    std::cout << "a: " << a << "\n";
-    std::cout << "b: " << b << "\n";
+    std::cout << RED << "    𝘅 " << message << RESET << "\n\n";
+    std::cout << GREEN << "expected: " << a << RESET << "\n";
+    std::cout << RED << "received: " << b << RESET << "\n\n";
     throw std::string(message);
   } else {
     std::cout << GREEN << "    ✔ "<< RESET << WHITE << message << RESET << "\n";
