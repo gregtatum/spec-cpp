@@ -13,12 +13,6 @@ The build process assumes that `clang++` is on the path with the ability to use 
 ## Test output
 ```
 
-src::test
-
-  Assertions
-    ✔ Does not throw
-    ✔ Equality does work
-
 features::arrays
 
   arrays can be created on the stack.
@@ -67,33 +61,6 @@ features::arrays
   Passing arrays is mainly type checking by the compiler, but then it copies the memory address of the array to the callee's arguments.
     ✔ The memory values are the same.
 
-features::pointers
-
-  stack values
-    ✔ Declaring a simple value puts it on the stack.
-  puts a value on the heap
-    ✔ 🚧  The value is not initialized, so it could be anything. (possibly intermittent)
-    ✔ Values placed on the heap can be accessed through the * operator.
-  the value on the stack is the memory address of the heap
-    ✔ The value itself is a memory address, so it shouldn't equal our value.
-    ✔ The memory address is still in lexical scope and can be re-assigned, but it points at possibly anything in memory. Accesing it is UNDEFINED BEHAVIOR!
-  multiple pointers point to the same place in memory
-    ✔ The values are in the heap are the same
-    ✔ The value on the stack is initially the same as what's on the heap
-    ✔ The value on the heap was updated
-    ✔ The other pointer points to the same value
-    ✔ The value on the stack is a separate value, and is not updated
-  references
-    ✔ The value is on the stack
-    ✔ The reference points to the value on the stack.
-    ✔ The value on the stack was updated
-    ✔ This is reflected in our own pointer.
-  passing around pointers
-    ✔ Starts as 32
-    ✔ Is mutated and added by one
-    ✔ The new value is 34
-    ✔ But the original can't be changed
-
 features::lvalueReference
 
   lvalue references
@@ -131,12 +98,72 @@ features::lvalueReference
     ✔ Setting the intHolder in a different lexical scope is fine, as the value is copied.
     ✔ We can't assign a reference to a value in a exterior lexical scope block
 
+features::pointers
+
+  stack values
+    ✔ Declaring a simple value puts it on the stack.
+  puts a value on the heap
+    ✔ 🚧  The value is not initialized, so it could be anything. (possibly intermittent)
+    ✔ Values placed on the heap can be accessed through the * operator.
+  the value on the stack is the memory address of the heap
+    ✔ The value itself is a memory address, so it shouldn't equal our value.
+    ✔ The memory address is still in lexical scope and can be re-assigned, but it points at possibly anything in memory. Accesing it is UNDEFINED BEHAVIOR!
+  multiple pointers point to the same place in memory
+    ✔ The values are in the heap are the same
+    ✔ The value on the stack is initially the same as what's on the heap
+    ✔ The value on the heap was updated
+    ✔ The other pointer points to the same value
+    ✔ The value on the stack is a separate value, and is not updated
+  references
+    ✔ The value is on the stack
+    ✔ The reference points to the value on the stack.
+    ✔ The value on the stack was updated
+    ✔ This is reflected in our own pointer.
+  passing around pointers
+    ✔ Starts as 32
+    ✔ Is mutated and added by one
+    ✔ The new value is 34
+    ✔ But the original can't be changed
+
 features::rvalueReference
 
   rvalue references
     ✔ rvalue references point to temporary values
   rvalue references can be passed to functions
     ✔ The rvalue reference function added one.
+
+features::smartPointers
+
+  Create a unique_ptr
+    ✔ Can create a smart pointer
+    ✔ After leaving it's scope, the reference is removed.
+  Delete it before the end of the scope
+    ✔ Can create a smart pointer
+    ✔ Reseting deletes the object at the reference.
+  Release the ownership of the object
+    ✔ Can create a smart pointer
+    ✔ The object was not removed from the heap
+    ✔ The object was manually removed
+  Create a shared_ptr
+    ✔ A shared pointer is created, and shared with the outer scope
+    ✔ The pointer is still shared, so the underlying object still exists.
+    ✔ After leaving both scope, the object is destructed
+  Create a weak_ptr
+    ✔ A shared pointer is created, and shared with the outer scope
+    ✔ The weak pointer is not expired
+    ✔ The pointer should be deleted, as it was only weakly held
+    ✔ The weak pointer is expired
+  Create a weak_ptr, but lock it
+    ✔ A shared pointer is created, and shared with the outer scope
+    ✔ The weak pointer is not expired
+    ✔ The pointer is still alive, because the weak ptr locked it
+    ✔ The weak pointer is expired
+    ✔ The lock and original value are out of scope, the object was deleted
+    ✔ The weak pointer is expired
+
+features::threads
+
+  Created a thread
 
 rusty::option
 
@@ -169,6 +196,12 @@ rusty::vec
     ✔ The value was added
     ✔ The value was added
     ✔ The last value is none
+
+src::test
+
+  Assertions
+    ✔ Does not throw
+    ✔ Equality does work
 
  All tests passed!
 ```
