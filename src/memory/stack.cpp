@@ -10,7 +10,6 @@ unsigned long getAddress(T* value) {
 }
 
 void run_tests() {
-  // TODO
   test::suite("memory::stack", []() {
     test::describe("Stack values are sequentially created backwards on the stack", []() {
       int a = 11;

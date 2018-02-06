@@ -203,5 +203,42 @@ src::test
     ✔ Does not throw
     ✔ Equality does work
 
+memory::stack
+
+  Stack values are sequentially created backwards on the stack
+    ✔ The diff of the addresses match
+    ✔ The diff of the addresses match
+    ✔ The diff of the addresses match
+    ✔ The diff of the addresses match
+  Stack values can be accessed using pointer arithmetic
+    ✔ Can access the values via pointer arithmetic
+    ✔ Can access the values via pointer arithmetic
+    ✔ Can access the values via pointer arithmetic
+    ✔ Can access the values via pointer arithmetic
+    ✔ Can access the values via pointer arithmetic
+  Stack values can be accessed using raw memory addresses
+    ✔ Can access the values by raw memory access
+    ✔ Can access the values by raw memory access
+    ✔ Can access the values by raw memory access
+    ✔ Can access the values by raw memory access
+    ✔ Can access the values by raw memory access
+  Stack values can be CHANGED using raw memory addresses, even on const values
+    ✔ Value on the stack was changed
+    ✔ Value on the stack was changed
+    ✔ Value on the stack was changed
+  Arrays are stack allocated
+    ✔ Value at address matches array value
+    ✔ Value at address matches array value
+    ✔ Value at address matches array value
+    ✔ Value at address matches array value
+    ✔ Value at address matches array value
+    ✔ Value at address matches array value
+    ✔ Value at address matches array value
+    ✔ Value at address matches array value
+    ✔ Value at address matches array value
+    ✔ Array 'a' matches when looking it up
+    ✔ Array 'b' matches when looking it up
+    ✔ Array 'c' matches when looking it up
+
  All tests passed!
 ```
