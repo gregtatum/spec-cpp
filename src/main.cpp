@@ -5,6 +5,7 @@
 #include "features/rvalue-reference.h"
 #include "features/smart-pointers.h"
 #include "features/threads.h"
+#include "memory/stack.h"
 #include "rusty/option.h"
 #include "rusty/vec.h"
 #include "test.h"
@@ -20,6 +21,10 @@ int main()
   rusty::option::run_tests();
   rusty::vec::run_tests();
   test::run_tests();
+
+  // These should not stop execution of the rest of the tests, as they may rely
+  // upon undefined behavior, or break with compiler optimizations.
+  try { memory::stack::run_tests(); } catch (std::string e) {}
 
   std::cout << "\n All tests passed!\n";
 }
