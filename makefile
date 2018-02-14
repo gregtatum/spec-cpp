@@ -4,7 +4,7 @@ BUILD_DIR := build
 SRC_EXT := cpp
 CFLAGS := -Wall -Werror -std=c++1y
 LIB :=
-INCLUDES := -I src
+INCLUDES := 
 
 SRC_DIR := src
 BUILD_DIR := $(BUILD_DIR)
@@ -16,7 +16,7 @@ CODE_OBJECTS := $(patsubst $(SRC_DIR)/%,$(BUILD_DIR)/%,$(SOURCES:.$(SRC_EXT)=.o)
 #Compile to objects
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.$(SRC_EXT)
 	@mkdir -p $(shell echo $@ | sed -e 's/\/[^\/]*\.o//g')
-	@echo " Compile Code: $(CC) $(CFLAGS) $(INC) -c -o $@ $<"; $(CC) $(CFLAGS) $(INC) -c -o $@ $<
+	@echo " Compile Code: $(CC) $(CFLAGS) $(INCLUDES) -c -o $@ $<"; $(CC) $(CFLAGS) $(INCLUDES) -c -o $@ $<
 
 #Link binary file
 $(CODE_TARGET): $(CODE_OBJECTS)

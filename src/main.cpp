@@ -5,10 +5,12 @@
 #include "features/rvalue-reference.h"
 #include "features/smart-pointers.h"
 #include "features/threads.h"
+#include "mfbt/TestRefPtr.h"
 #include "memory/stack.h"
 #include "rusty/option.h"
 #include "rusty/vec.h"
 #include "test.h"
+#include "../includes/mfbt/RefPtr.h"
 
 int main()
 {
@@ -21,6 +23,7 @@ int main()
   rusty::option::run_tests();
   rusty::vec::run_tests();
   test::run_tests();
+  mfbt::TestRefPtr::run_tests();
 
   // These should not stop execution of the rest of the tests, as they may rely
   // upon undefined behavior, or break with compiler optimizations.
