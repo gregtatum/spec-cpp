@@ -8,7 +8,7 @@
 #include "mfbt/TestRefPtr.h"
 #include "memory/stack.h"
 #include "rusty/option.h"
-#include "rusty/vec.h"
+#include "rusty/vector.h"
 #include "test.h"
 #include "../includes/mfbt/RefPtr.h"
 
@@ -20,6 +20,7 @@ int main()
   features::rvalueReference::run_tests();
   features::smartPointers::run_tests();
   features::threads::run_tests();
+  features::vector::run_tests();
   rusty::option::run_tests();
   rusty::vec::run_tests();
   test::run_tests();
