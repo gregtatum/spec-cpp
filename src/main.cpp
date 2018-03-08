@@ -7,6 +7,7 @@
 #include "features/threads.h"
 #include "features/vector.h"
 #include "mfbt/TestRefPtr.h"
+#include "mfbt/TestMaybe.h"
 #include "memory/stack.h"
 #include "rusty/option.h"
 #include "rusty/vec.h"
@@ -26,6 +27,7 @@ int main()
   rusty::vec::run_tests();
   test::run_tests();
   mfbt::TestRefPtr::run_tests();
+  mfbt::TestMaybe::run_tests();
 
   // These should not stop execution of the rest of the tests, as they may rely
   // upon undefined behavior, or break with compiler optimizations.
