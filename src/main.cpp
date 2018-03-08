@@ -5,10 +5,11 @@
 #include "features/rvalue-reference.h"
 #include "features/smart-pointers.h"
 #include "features/threads.h"
+#include "features/vector.h"
 #include "mfbt/TestRefPtr.h"
 #include "memory/stack.h"
 #include "rusty/option.h"
-#include "rusty/vector.h"
+#include "rusty/vec.h"
 #include "test.h"
 #include "../includes/mfbt/RefPtr.h"
 

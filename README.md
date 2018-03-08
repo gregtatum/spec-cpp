@@ -165,6 +165,56 @@ features::threads
 
   Created a thread
 
+features::vector
+
+  Can create a vector
+  Vectors can be initialized with a size
+    ✔ Vectors initialized with a size
+  toString helper
+    ✔ It creates a debug string for arrays with values.
+    ✔ It creates a debug string for arrays without values.
+  Vectors are initialized to 0
+    ✔ Nothing is in the vector yet.
+  Vectors can be pushed onto
+    ✔ Nothing is in the vector yet.
+    ✔ It has no size
+    ✔ It has no capacity
+    ✔ One thing is in the vector.
+    ✔ Its size matches length
+    ✔ Its capacity matches the size
+    ✔ Two things are on the vector.
+    ✔ Its size matches length
+    ✔ Its capacity matches the size
+    ✔ One thing is in the vector.
+    ✔ Its size matches length
+    ✔ Its capacity has not changed.
+  Vectors retain capacity when popping
+    ✔ One thing is in the vector.
+    ✔ Its size matches length
+    ✔ Its capacity still has the initial sizing.
+  Vectors can be resized
+    ✔ Size adds on to the size.
+  Vectors can be resized with a value
+    ✔ Size adds on to the size.
+  std::vector::at
+    ✔ Value can be access
+    ✔ Value can be access
+    ✔ Value can be access
+    ✔ This is an out of range exception.
+  std::vector::[]
+    ✔ Value can be access
+    ✔ Value can be access
+    ✔ Value can be access
+    ✔ UNDEFINED VALUE: It allows you to access out of range values.
+  std::vector::at can be used as an lvalue
+    ✔ The first item was assigned to.
+  std::vector accessors
+    ✔ Can access the front
+    ✔ Can access the back
+    ✔ Can access the underlying data
+    ✔ Can access the underlying data
+    ✔ Can access the underlying data
+
 rusty::option
 
   Option
@@ -202,6 +252,51 @@ src::test
   Assertions
     ✔ Does not throw
     ✔ Equality does work
+
+mfbt::TestRefPtr
+
+  RefPtr works just like a unique_ptr with one reference
+    ✔ Has one reference
+    ✔ No objects have been killed in the inner scope
+    ✔ The reference counted object is killed
+  nullptr
+    ✔ Uninitialized pointers are false on if checks
+    ✔ RefPtr can be assigned to a nullptr
+    ✔ RefPtr of course can be assigned.
+  reassignment
+    ✔ A starts with 1 ref count
+    ✔ B starts with 1 ref count
+    ✔ The references to A are now 2
+    ✔ The references to B are now 2, as it's the same as A
+    ✔ One object has been killed
+    ✔ Both have been killed
+  RefPtr pointer behavior
+    ✔ It works like a normal pointer calling member functions.
+  RefPtr can have multiple references and properly count them
+    ✔ Has one reference
+    ✔ Has two reference
+    ✔ Has two reference
+    ✔ No objects have been killed in the inner scope
+    ✔ One reference was removed when it went out of scope
+    ✔ No objects have been killed in the middle scope
+    ✔ The reference counted object is killed
+  observe the refcount by passing a copy of the RefPtr to a function
+    ✔ Has one reference at the beginning
+    ✔ It had two reference counts in the function call.
+    ✔ Has one reference after the function call
+    ✔ No objects have been killed in the inner scope
+    ✔ The reference counted object is killed
+  DANGEROUS! observe the refcount by passing a pointer to the RefPtr to a function
+    ✔ Has one reference at the beginning
+    ✔ DANGER! Passing by raw pointer obliterates the contract.
+    ✔ Has one reference after the function call
+    ✔ No objects have been killed in the inner scope
+    ✔ The reference counted object is killed
+  RefPtr retained by a static
+    ✔ Has one reference after initialization
+    ✔ Has two references, as one is kept as a static property
+    ✔ The RefPtr was still not killed, as it is being retained by the HasStaticObj
+    ✔ The reference had to be manually deleted
 
 memory::stack
 
