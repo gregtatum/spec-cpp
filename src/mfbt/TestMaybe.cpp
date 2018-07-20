@@ -1,6 +1,17 @@
 #include "../../includes/mfbt/Maybe.h"
 #include "../test.h"
 
+class SomeValue {
+  public:
+    int mFloat;
+    int mInt;
+
+    SomeValue(float aFloat, int aInt)
+      : mFloat(aFloat)
+      , mInt(aInt)
+      {}
+};
+
 namespace mfbt {
 namespace TestMaybe {
 
@@ -27,6 +38,12 @@ void run_tests() {
       mozilla::Maybe<int> myVal;
       test::assertEq(myVal.isSome(), false, "There is no value");
       myVal.emplace(5);
+      test::assertEq(myVal.isSome(), true, "There is now an emplaced value");
+    });
+
+    test::describe("Can emplace a value with interesting constructors", []() {
+      mozilla::Maybe<SomeValue> myVal;
+      myVal.emplace(1.0, 2);
       test::assertEq(myVal.isSome(), true, "There is now an emplaced value");
     });
   });

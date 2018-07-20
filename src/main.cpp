@@ -1,5 +1,6 @@
 #include <iostream>
 #include "features/arrays.h"
+#include "features/classes.h"
 #include "features/lvalue-reference.h"
 #include "features/pointers.h"
 #include "features/rvalue-reference.h"
@@ -8,6 +9,7 @@
 #include "features/vector.h"
 #include "mfbt/TestRefPtr.h"
 #include "mfbt/TestMaybe.h"
+//#include "memory/Allocator.h"
 #include "memory/stack.h"
 #include "rusty/option.h"
 #include "rusty/vec.h"
@@ -16,6 +18,7 @@
 
 int main()
 {
+  features::classes::run_tests();
   features::arrays::run_tests();
   features::lvalueReference::run_tests();
   features::pointers::run_tests();
@@ -28,6 +31,7 @@ int main()
   test::run_tests();
   mfbt::TestRefPtr::run_tests();
   mfbt::TestMaybe::run_tests();
+  //memory::allocator::run_tests()
 
   // These should not stop execution of the rest of the tests, as they may rely
   // upon undefined behavior, or break with compiler optimizations.
