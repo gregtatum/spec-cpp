@@ -7,7 +7,7 @@
 // void run_tests() {
 //   test::suite("memory::allocator", []() {
 //     test::describe("memory::allocator", []() {
-//       test::assertEq(0, 0, "This test runs.");
+//       test::equal(0, 0, "This test runs.");
 //     });
 //   });
 // }

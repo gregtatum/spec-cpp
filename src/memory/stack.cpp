@@ -19,22 +19,22 @@ void run_tests() {
       int e = 55;
 
       // An int is 4 bytes, so the raw memory address is offset by 4 each time.
-      test::assertEq(
+      test::equal(
         long(getAddress(&b) - getAddress(&a)),
         long(4 * -1),
         "The diff of the addresses match"
       );
-      test::assertEq(
+      test::equal(
         long(getAddress(&c) - getAddress(&a)),
         long(4 * -2),
         "The diff of the addresses match"
       );
-      test::assertEq(
+      test::equal(
         long(getAddress(&d) - getAddress(&a)),
         long(4 * -3),
         "The diff of the addresses match"
       );
-      test::assertEq(
+      test::equal(
         long(getAddress(&e) - getAddress(&a)),
         long(4 * -4),
         "The diff of the addresses match"
@@ -50,11 +50,11 @@ void run_tests() {
 
       // Adding numbers to a pointer type of `int*` moves the memory address
       // in increments of 4 bytes.
-      test::assertEq(*(&a - 0), 11, "Can access the values via pointer arithmetic");
-      test::assertEq(*(&a - 1), 22, "Can access the values via pointer arithmetic");
-      test::assertEq(*(&a - 2), 33, "Can access the values via pointer arithmetic");
-      test::assertEq(*(&a - 3), 44, "Can access the values via pointer arithmetic");
-      test::assertEq(*(&a - 4), 55, "Can access the values via pointer arithmetic");
+      test::equal(*(&a - 0), 11, "Can access the values via pointer arithmetic");
+      test::equal(*(&a - 1), 22, "Can access the values via pointer arithmetic");
+      test::equal(*(&a - 2), 33, "Can access the values via pointer arithmetic");
+      test::equal(*(&a - 3), 44, "Can access the values via pointer arithmetic");
+      test::equal(*(&a - 4), 55, "Can access the values via pointer arithmetic");
     });
 
     test::describe("Stack values can be accessed using raw memory addresses", []() {
@@ -68,11 +68,11 @@ void run_tests() {
 
       // Memory addresses can be manually offset with some math. Each offset is by 4
       // bytes.
-      test::assertEq(*(int*) (address - 4 * 0), 11, "Can access the values by raw memory access");
-      test::assertEq(*(int*) (address - 4 * 1), 22, "Can access the values by raw memory access");
-      test::assertEq(*(int*) (address - 4 * 2), 33, "Can access the values by raw memory access");
-      test::assertEq(*(int*) (address - 4 * 3), 44, "Can access the values by raw memory access");
-      test::assertEq(*(int*) (address - 4 * 4), 55, "Can access the values by raw memory access");
+      test::equal(*(int*) (address - 4 * 0), 11, "Can access the values by raw memory access");
+      test::equal(*(int*) (address - 4 * 1), 22, "Can access the values by raw memory access");
+      test::equal(*(int*) (address - 4 * 2), 33, "Can access the values by raw memory access");
+      test::equal(*(int*) (address - 4 * 3), 44, "Can access the values by raw memory access");
+      test::equal(*(int*) (address - 4 * 4), 55, "Can access the values by raw memory access");
     });
 
     test::describe("Stack values can be CHANGED using raw memory addresses, even on const values", []() {
@@ -92,9 +92,9 @@ void run_tests() {
       *(int*) (address - 4 * 2) = 34;
 
       // Use pointers to prevent the compiler from optimizing away const values.
-      test::assertEq(*pA, 12, "Value on the stack was changed");
-      test::assertEq(*pB, 23, "Value on the stack was changed");
-      test::assertEq(*pC, 34, "Value on the stack was changed");
+      test::equal(*pA, 12, "Value on the stack was changed");
+      test::equal(*pB, 23, "Value on the stack was changed");
+      test::equal(*pC, 34, "Value on the stack was changed");
     });
 
     test::describe("Arrays are stack allocated", []() {
@@ -117,22 +117,22 @@ void run_tests() {
       }
 
       // a:
-      test::assertEq(*(int*) (address + -24), 77, "Value at address matches array value");
-      test::assertEq(*(int*) (address + -20), 88, "Value at address matches array value");
-      test::assertEq(*(int*) (address + -16), 99, "Value at address matches array value");
+      test::equal(*(int*) (address + -24), 77, "Value at address matches array value");
+      test::equal(*(int*) (address + -20), 88, "Value at address matches array value");
+      test::equal(*(int*) (address + -16), 99, "Value at address matches array value");
       // b:
-      test::assertEq(*(int*) (address + -12), 44, "Value at address matches array value");
-      test::assertEq(*(int*) (address + -8), 55, "Value at address matches array value");
-      test::assertEq(*(int*) (address + -4), 66, "Value at address matches array value");
+      test::equal(*(int*) (address + -12), 44, "Value at address matches array value");
+      test::equal(*(int*) (address + -8), 55, "Value at address matches array value");
+      test::equal(*(int*) (address + -4), 66, "Value at address matches array value");
       // c:
-      test::assertEq(*(int*) (address + 0), 11, "Value at address matches array value");
-      test::assertEq(*(int*) (address + 4), 22, "Value at address matches array value");
-      test::assertEq(*(int*) (address + 8), 33, "Value at address matches array value");
+      test::equal(*(int*) (address + 0), 11, "Value at address matches array value");
+      test::equal(*(int*) (address + 4), 22, "Value at address matches array value");
+      test::equal(*(int*) (address + 8), 33, "Value at address matches array value");
 
 
-      test::assertEq((int(*)[3]) (address -  0), &a, "Array 'a' matches when looking it up");
-      test::assertEq((int(*)[3]) (address - 12), &b, "Array 'b' matches when looking it up");
-      test::assertEq((int(*)[3]) (address - 24), &c, "Array 'c' matches when looking it up");
+      test::equal((int(*)[3]) (address -  0), &a, "Array 'a' matches when looking it up");
+      test::equal((int(*)[3]) (address - 12), &b, "Array 'b' matches when looking it up");
+      test::equal((int(*)[3]) (address - 24), &c, "Array 'c' matches when looking it up");
     });
 
   });

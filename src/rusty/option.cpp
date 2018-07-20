@@ -39,21 +39,21 @@ void run_tests() {
     test::describe("Option", []() {
       float pi = 3.14159f;
       auto maybePi = rusty::option::some(&pi);
-      test::assertEq(*maybePi.unwrap(), 3.14159f, "Can unwrap a value");
-      test::assert(maybePi.isSome(),
+      test::equal(*maybePi.unwrap(), 3.14159f, "Can unwrap a value");
+      test::ok(maybePi.isSome(),
        "A some value is Some");
-      test::assert(!maybePi.isNone(), "A some value is not None");
+      test::ok(!maybePi.isNone(), "A some value is not None");
 
       auto notPi = rusty::option::none();
       try {
         notPi.unwrap();
-        test::assert(false, "Cannot unwrap a None");
+        test::ok(false, "Cannot unwrap a None");
       } catch (int e) {
-        test::assert(true, "Cannot unwrap a None");
+        test::ok(true, "Cannot unwrap a None");
       }
 
-      test::assert(!notPi.isSome(), "A none value is not Some");
-      test::assert(notPi.isNone(), "A none value is None");
+      test::ok(!notPi.isSome(), "A none value is not Some");
+      test::ok(notPi.isNone(), "A none value is None");
     });
   });
 }

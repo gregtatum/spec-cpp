@@ -27,7 +27,7 @@ void describe(
   callback();
 }
 
-void assert(bool value, const std::string& message) {
+void ok(bool value, const std::string& message) {
   if (!value) {
     std::cout << RED << "    𝘅 " << message << RESET << "\n";
     throw std::string(message);
@@ -40,10 +40,10 @@ void run_tests() {
   test::suite("src::test", []() {
 
     test::describe("Assertions", []() {
-      test::assert(true, "Does not throw");
-      // test::assert(false, "Uncomment to throw");
-      test::assertEq(true, true, "Equality does work");
-      // test::assertEq(true, false, "Inequality throws");
+      test::ok(true, "Does not throw");
+      // test::ok(false, "Uncomment to throw");
+      test::equal(true, true, "Equality does work");
+      // test::equal(true, false, "Inequality throws");
     });
 
   });

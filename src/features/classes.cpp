@@ -46,11 +46,11 @@ void run_tests() {
   test::suite("features::classes", []() {
     test::describe("nested classes", []() {
       NestedOuterClass outer(5);
-      test::assertEq(outer.getOuterValue(), 5, "Can create a NestedOuterClass on the stack.");
+      test::equal(outer.getOuterValue(), 5, "Can create a NestedOuterClass on the stack.");
       NestedOuterClass::NestedInnerClass inner;
-      test::assertEq(inner.getOuterStaticValue(), 7, "Can create a NestedInnerClass, and access a static variable.");
-      test::assertEq(inner.getRootShadowedValue(), 1, "Can create a NestedInnerClass, and access a static variable.");
-      test::assertEq(inner.getOuterShadowedValue(), 2, "Can create a NestedInnerClass, and access a static variable.");
+      test::equal(inner.getOuterStaticValue(), 7, "Can create a NestedInnerClass, and access a static variable.");
+      test::equal(inner.getRootShadowedValue(), 1, "Can create a NestedInnerClass, and access a static variable.");
+      test::equal(inner.getOuterShadowedValue(), 2, "Can create a NestedInnerClass, and access a static variable.");
     });
   });
 }

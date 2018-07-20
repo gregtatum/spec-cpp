@@ -12,11 +12,11 @@ static const std::string RESET = "\033[0m";
 
 void suite(const std::string&, std::function<void ()>);
 void describe(const std::string&, std::function<void ()>);
-void assert(bool, const std::string&);
+void ok(bool, const std::string&);
 void run_tests();
 
 template<typename T>
-void assertEq(T a, T b, const std::string& message) {
+void equal(T a, T b, const std::string& message) {
   if (a != b) {
     std::cout << RED << "    𝘅 " << message << RESET << "\n\n";
     std::cout << GREEN << "expected: " << b << RESET << "\n";

@@ -41,7 +41,7 @@ bool intExists(int value) {
  */
 template<typename A, typename B>
 void assertVecEqual(A&& a, B&& b, const std::string& message) {
-  test::assertEq(toString(a), toString(b), message);
+  test::equal(toString(a), toString(b), message);
 }
 
 void run_tests() {
@@ -52,7 +52,7 @@ void run_tests() {
 
     test::describe("Vectors can be initialized with a size", []() {
       std::vector<int> vec(5);
-      test::assertEq(
+      test::equal(
         vec.size(),
         size_t(5),
         "Vectors initialized with a size"
@@ -60,12 +60,12 @@ void run_tests() {
     });
 
     test::describe("toString helper", []() {
-      test::assertEq(
+      test::equal(
         toString(std::vector<int>({ 1, 2, 3 })),
         std::string("{ 1, 2, 3 }"),
         "It creates a debug string for arrays with values."
       );
-      test::assertEq(
+      test::equal(
         toString(std::vector<int>({})),
         std::string("{}"),
         "It creates a debug string for arrays without values."
@@ -83,23 +83,23 @@ void run_tests() {
     test::describe("Vectors can be pushed onto", []() {
       std::vector<int> vec {};
       assertVecEqual(vec, std::vector<int>({}), "Nothing is in the vector yet.");
-      test::assertEq(vec.size(), size_t(0), "It has no size");
-      test::assertEq(vec.capacity(), size_t(0), "It has no capacity");
+      test::equal(vec.size(), size_t(0), "It has no size");
+      test::equal(vec.capacity(), size_t(0), "It has no capacity");
 
       vec.push_back(1);
       assertVecEqual(vec, std::vector<int>({ 1 }), "One thing is in the vector.");
-      test::assertEq(vec.size(), size_t(1), "Its size matches length");
-      test::assertEq(vec.capacity(), size_t(1), "Its capacity matches the size");
+      test::equal(vec.size(), size_t(1), "Its size matches length");
+      test::equal(vec.capacity(), size_t(1), "Its capacity matches the size");
 
       vec.push_back(2);
       assertVecEqual(vec, std::vector<int>({ 1, 2 }), "Two things are on the vector.");
-      test::assertEq(vec.size(), size_t(2), "Its size matches length");
-      test::assertEq(vec.capacity(), size_t(2), "Its capacity matches the size");
+      test::equal(vec.size(), size_t(2), "Its size matches length");
+      test::equal(vec.capacity(), size_t(2), "Its capacity matches the size");
 
       vec.pop_back();
       assertVecEqual(vec, std::vector<int>({ 1 }), "One thing is in the vector.");
-      test::assertEq(vec.size(), size_t(1), "Its size matches length");
-      test::assertEq(vec.capacity(), size_t(2), "Its capacity has not changed.");
+      test::equal(vec.size(), size_t(1), "Its size matches length");
+      test::equal(vec.capacity(), size_t(2), "Its capacity has not changed.");
     });
 
     test::describe("Vectors retain capacity when popping", []() {
@@ -112,8 +112,8 @@ void run_tests() {
       vec.pop_back();
 
       assertVecEqual(vec, std::vector<int>({ 1 }), "One thing is in the vector.");
-      test::assertEq(vec.size(), size_t(1), "Its size matches length");
-      test::assertEq(vec.capacity(), size_t(6), "Its capacity still has the initial sizing.");
+      test::equal(vec.size(), size_t(1), "Its size matches length");
+      test::equal(vec.capacity(), size_t(6), "Its capacity still has the initial sizing.");
     });
 
     test::describe("Vectors can be resized", []() {
@@ -130,23 +130,23 @@ void run_tests() {
 
     test::describe("std::vector::at", []() {
       std::vector<int> vec { 11, 22, 33 };
-      test::assertEq(vec.at(0), 11, "Value can be access");
-      test::assertEq(vec.at(1), 22, "Value can be access");
-      test::assertEq(vec.at(2), 33, "Value can be access");
+      test::equal(vec.at(0), 11, "Value can be access");
+      test::equal(vec.at(1), 22, "Value can be access");
+      test::equal(vec.at(2), 33, "Value can be access");
       try {
         // Try to access out of range.
         vec.at(3);
       } catch(const std::exception&) {
-        test::assert(true, "This is an out of range exception.");
+        test::ok(true, "This is an out of range exception.");
       }
     });
 
     test::describe("std::vector::[]", []() {
       std::vector<int> vec { 11, 22, 33 };
-      test::assertEq(vec[0], 11, "Value can be access");
-      test::assertEq(vec[1], 22, "Value can be access");
-      test::assertEq(vec[2], 33, "Value can be access");
-      test::assert(intExists(vec[3]), "UNDEFINED VALUE: It allows you to access out of range values.");
+      test::equal(vec[0], 11, "Value can be access");
+      test::equal(vec[1], 22, "Value can be access");
+      test::equal(vec[2], 33, "Value can be access");
+      test::ok(intExists(vec[3]), "UNDEFINED VALUE: It allows you to access out of range values.");
     });
 
     test::describe("std::vector::at can be used as an lvalue", []() {
@@ -157,11 +157,11 @@ void run_tests() {
 
     test::describe("std::vector accessors", []() {
       std::vector<int> vec { 11, 22, 33 };
-      test::assertEq(vec.front(), 11, "Can access the front");
-      test::assertEq(vec.back(), 33, "Can access the back");
-      test::assertEq(vec.data()[0], 11, "Can access the underlying data");
-      test::assertEq(vec.data()[1], 22, "Can access the underlying data");
-      test::assertEq(vec.data()[2], 33, "Can access the underlying data");
+      test::equal(vec.front(), 11, "Can access the front");
+      test::equal(vec.back(), 33, "Can access the back");
+      test::equal(vec.data()[0], 11, "Can access the underlying data");
+      test::equal(vec.data()[1], 22, "Can access the underlying data");
+      test::equal(vec.data()[2], 33, "Can access the underlying data");
     });
   });
 }
