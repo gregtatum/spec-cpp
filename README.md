@@ -13,6 +13,14 @@ The build process assumes that `clang++` is on the path with the ability to use 
 ## Test output
 ```
 
+features::classes
+
+  nested classes
+    ✔ Can create a NestedOuterClass on the stack.
+    ✔ Can create a NestedInnerClass, and access a static variable.
+    ✔ Can create a NestedInnerClass, and access a static variable.
+    ✔ Can create a NestedInnerClass, and access a static variable.
+
 features::arrays
 
   arrays can be created on the stack.
@@ -297,6 +305,71 @@ mfbt::TestRefPtr
     ✔ Has two references, as one is kept as a static property
     ✔ The RefPtr was still not killed, as it is being retained by the HasStaticObj
     ✔ The reference had to be manually deleted
+
+mfbt::TestMaybe
+
+  mozilla::Some
+    ✔ There is some value
+    ✔ There is not nothing
+    ✔ There is a value
+    ✔ There is a value
+    ✔ Can access via pointer
+    ✔ Can access via reference
+  mozilla::Nothing
+    ✔ There is no value
+    ✔ This is nothing
+    ✔ There is not value, so use default
+  Can emplace a value
+    ✔ There is no value
+    ✔ There is now an emplaced value
+  Can emplace a value with interesting constructors
+    ✔ There is now an emplaced value
+
+memory::allocator
+
+  calling sbrk
+    ✔ It returns a memory address
+  basic allocation
+    ✔ It can allocate 5 bytes
+  allocation failures
+    ✔ It will fail when given values it can't work with.
+  A basic allocation
+    ✔ No bytes allocated
+    ✔ No bytes allocated
+    ✔ It was able to allocate something
+    ✔ Allocated some bytes
+    ✔ It allocated a single aligned block
+  Multiple allocations
+    ✔ It was able to allocate something
+    ✔ It was able to allocate something
+    ✔ It was able to allocate something
+    ✔ Allocated some bytes
+    ✔ It allocated many aligned blocks
+  Setting values at allocations
+    ✔ a is equal to 11
+    ✔ b is equal to 22
+    ✔ c is equal to 33
+  Freeing all allocations
+    ✔ Some bytes have been allocated.
+    ✔ Freeing the allocations results in no bytes.
+  Setting values at allocations
+    ✔ a is equal to 11
+    ✔ b is equal to 22
+    ✔ c is equal to 33
+    ✔ a2 is equal to 44
+    ✔ b2 is equal to 55
+    ✔ c2 is equal to 66
+  Values allocated get aligned to 8 bytes.
+    ✔ The int is less than 8 bytes
+    ✔ The allocation block is aligned
+    ✔ The two allocations are aligned 8 bytes apart, plus the allocation block size.
+  Values can be freed
+    ✔ None of the original values are touched. a is equal to 11
+    ✔ None of the original values are touched. b is equal to 22
+    ✔ None of the original values are touched. c is equal to 33
+    ✔ The re-allocated memory re-used the freed spot
+    ✔ The original spot had its value changed.
+    ✔ The new spot had its value changed.
 
 memory::stack
 
