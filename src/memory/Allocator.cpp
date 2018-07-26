@@ -46,18 +46,41 @@ public:
     AllocationBlock* targetBlock = reinterpret_cast<AllocationBlock*>(
       reinterpret_cast<uintptr_t>(pointer) - ALLOCATION_BLOCK_SIZE
     );
+    AllocationBlock* previousBlock = nullptr;
     // We could naively use the pointer, but let's not trust it and walk
     // the linked list to find the block.
     do {
       if (block == targetBlock) {
         block->isFree = true;
+        auto nextBlock = block->next;
+        if (nextBlock && nextBlock->isFree) {
+          // The next block is free as well, so combine the two blocks of memory.
+          block->next = nextBlock->next;
+          block->byteSize += ALLOCATION_BLOCK_SIZE + nextBlock->byteSize;
+        }
+
+        if (previousBlock && previousBlock->isFree) {
+          // The previous block is free as well, so combine the two blocks of memory.
+          previousBlock->next = block->next;
+          previousBlock->byteSize += ALLOCATION_BLOCK_SIZE + block->byteSize;
+        }
         return true;
       }
+      previousBlock = block;
       block = block->next;
     } while(block);
 
     // The block wasn't found.
     return false;
+  }
+
+  size_t countBlocks() {
+    size_t count = 0;
+    AllocationBlock* block = &mRoot;
+    while ((block = block->next)) {
+      count++;
+    }
+    return count;
   }
 
   void freeAllAllocations() {
@@ -144,11 +167,46 @@ public:
     return newBlock;
   }
 
-  void* allocate(const size_t byteSize) {
-    AllocationBlock* block = this->findFreeBlock(byteSize);
+  void* allocate(const size_t bytesToAllocate) {
+    AllocationBlock* block = this->findFreeBlock(bytesToAllocate);
     if (!block) {
       return nullptr;
     }
+
+    // Compute the remaining free bytes if another allocation block were created.
+    if (block->next) {
+      size_t bytesBetweenBlocks =
+        reinterpret_cast<uintptr_t>(block->next) - reinterpret_cast<uintptr_t>(block);
+
+      size_t remainingFreeBytes =
+        // Start with the number of bytes between blocks.
+        bytesBetweenBlocks -
+        // Remove the bytes we want to allocate right now.
+        bytesToAllocate -
+        // Remove this allocation's block size.
+        ALLOCATION_BLOCK_SIZE -
+        // And remove the NEXT allocation's block size, this leaves the remaining
+        // available bytes for the next allocation.
+        ALLOCATION_BLOCK_SIZE;
+
+      if (remainingFreeBytes > 0) {
+        // The remaining blocks have enough space for another allocation block.
+        auto newSplitBlock = reinterpret_cast<AllocationBlock*>(
+          // Move the pointer forward to the next allocation block.
+          reinterpret_cast<uintptr_t>(block) + ALLOCATION_BLOCK_SIZE + bytesToAllocate
+        );
+        // Set the values for the new split block block.
+        newSplitBlock->byteSize = remainingFreeBytes;
+        newSplitBlock->isFree = true;
+        newSplitBlock->next = block->next;
+
+        // Re-point the existing block.
+        block->next = newSplitBlock;
+        block->byteSize = bytesToAllocate;
+      }
+    }
+
+    // Return a pointer to the allocated space.
     return reinterpret_cast<void*>(
       reinterpret_cast<uintptr_t>(block) + ALLOCATION_BLOCK_SIZE
     );
@@ -316,6 +374,74 @@ void run_tests() {
       *b2 = 44;
       test::equal(*b1, 44, "The original spot had its value changed.");
       test::equal(*b2, 44, "The new spot had its value changed.");
+    });
+
+    test::describe("Freeing a block after an already free block will combine them into one block", []() {
+      Allocator allocator = Allocator();
+      allocator.allocate(8);
+      void* a = reinterpret_cast<int*>(allocator.allocate(8));
+      void* b = reinterpret_cast<int*>(allocator.allocate(8));
+      allocator.allocate(8);
+
+      test::equal(allocator.countBlocks(), (size_t) 4, "Starts out with 4 blocks");
+      allocator.free(a);
+      allocator.free(b);
+      test::equal(
+        allocator.countBlocks(),
+        (size_t) 3,
+        "After freeing the two middle ones, they are combined, and only 3 remain."
+      );
+    });
+
+    test::describe("Freeing a block before an already free block will combine into one block", []() {
+      Allocator allocator = Allocator();
+      allocator.allocate(8);
+      void* a = reinterpret_cast<int*>(allocator.allocate(8));
+      void* b = reinterpret_cast<int*>(allocator.allocate(8));
+      allocator.allocate(8);
+
+      test::equal(allocator.countBlocks(), (size_t) 4, "Starts out with 4 blocks");
+      allocator.free(b);
+      allocator.free(a);
+      test::equal(
+        allocator.countBlocks(),
+        (size_t) 3,
+        "After freeing the two middle ones, they are combined, and only 3 remain."
+      );
+    });
+
+    test::describe("Can allocate into a free block", []() {
+      Allocator allocator = Allocator();
+      allocator.allocate(8);
+      int* a = reinterpret_cast<int*>(allocator.allocate(4));
+      int* b = reinterpret_cast<int*>(allocator.allocate(4));
+      int* c = reinterpret_cast<int*>(allocator.allocate(4));
+      int* d = reinterpret_cast<int*>(allocator.allocate(4));
+
+      *a = 11;
+      *b = 22;
+      *c = 33;
+      *d = 44;
+
+      test::equal(*a, 11, "a is equal to 11");
+      test::equal(*b, 22, "b is equal to 22");
+      test::equal(*c, 33, "c is equal to 33");
+      test::equal(*d, 44, "d is equal to 33");
+
+      allocator.free(b);
+      allocator.free(c);
+
+      long* e = reinterpret_cast<long*>(allocator.allocate(8));
+
+      *e = 55;
+
+      test::equal(*a, 11, "a is still equal to 11");
+      test::equal(*d, 44, "d is still equal to 33");
+      test::equal(*e, (long) 55, "e is equal to 55");
+
+      test::ok(reinterpret_cast<void*>(a) < reinterpret_cast<void*>(e), "The a block is earlier than the d block");
+      test::ok(reinterpret_cast<void*>(d) > reinterpret_cast<void*>(e), "The e block was placed before the d block");
+      test::ok(reinterpret_cast<void*>(b) == reinterpret_cast<void*>(e), "The e block was placed in the b block position");
     });
   });
 }
