@@ -370,6 +370,23 @@ memory::allocator
     ✔ The re-allocated memory re-used the freed spot
     ✔ The original spot had its value changed.
     ✔ The new spot had its value changed.
+  Freeing a block after an already free block will combine them into one block
+    ✔ Starts out with 4 blocks
+    ✔ After freeing the two middle ones, they are combined, and only 3 remain.
+  Freeing a block before an already free block will combine into one block
+    ✔ Starts out with 4 blocks
+    ✔ After freeing the two middle ones, they are combined, and only 3 remain.
+  Can allocate into a free block
+    ✔ a is equal to 11
+    ✔ b is equal to 22
+    ✔ c is equal to 33
+    ✔ d is equal to 33
+    ✔ a is still equal to 11
+    ✔ d is still equal to 33
+    ✔ e is equal to 55
+    ✔ The a block is earlier than the d block
+    ✔ The e block was placed before the d block
+    ✔ The e block was placed in the b block position
 
 memory::stack
 
