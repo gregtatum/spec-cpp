@@ -21,6 +21,12 @@ public:
     , next(nullptr)
     , isFree(false)
     {}
+
+  AllocationBlock(size_t aByteSize, AllocationBlock* aNext, bool aIsFree)
+    : byteSize(aByteSize)
+    , next(aNext)
+    , isFree(aIsFree)
+    {}
 };
 
 class Allocator {
@@ -167,7 +173,21 @@ public:
     return newBlock;
   }
 
-  void* allocate(const size_t bytesToAllocate) {
+  /**
+   * This method allows for simple end-user allocation of values. It relies upon
+   * templates to generalize the allocation by the type.
+   */
+  template<typename AllocatedType, typename... Args>
+  AllocatedType* allocate(Args&&... aArgs) {
+    // Allocate a block of the appropritate size.
+    void* pointer = this->allocateBlock(sizeof(AllocatedType));
+
+    // Use the in-place new operator, and then forward along the args. This preserves
+    // the rvalue and lvalue of the args, as created by the callee.
+    return new (pointer) AllocatedType(std::forward<Args>(aArgs)...);
+  }
+
+  void* allocateBlock(const size_t bytesToAllocate) {
     AllocationBlock* block = this->findFreeBlock(bytesToAllocate);
     if (!block) {
       return nullptr;
@@ -191,14 +211,17 @@ public:
 
       if (remainingFreeBytes > 0) {
         // The remaining blocks have enough space for another allocation block.
-        auto newSplitBlock = reinterpret_cast<AllocationBlock*>(
+        void* pointer = reinterpret_cast<void *>(
           // Move the pointer forward to the next allocation block.
           reinterpret_cast<uintptr_t>(block) + ALLOCATION_BLOCK_SIZE + bytesToAllocate
         );
+
         // Set the values for the new split block block.
-        newSplitBlock->byteSize = remainingFreeBytes;
-        newSplitBlock->isFree = true;
-        newSplitBlock->next = block->next;
+        auto newSplitBlock = new(pointer) AllocationBlock(
+          remainingFreeBytes,
+          block->next,
+          true
+        );
 
         // Re-point the existing block.
         block->next = newSplitBlock;
@@ -247,7 +270,7 @@ void run_tests() {
       test::equal(allocator.mActiveBytesAllocated, size_t(0), "No bytes allocated");
       test::equal(allocator.mTotalBytesAllocated, size_t(0), "No bytes allocated");
 
-      test::ok(allocator.allocate(5), "It was able to allocate something");
+      test::ok(allocator.allocateBlock(5), "It was able to allocate something");
       test::equal(allocator.mActiveBytesAllocated, size_t(5), "Allocated some bytes");
       test::equal(
         allocator.mTotalBytesAllocated - ALLOCATION_BLOCK_SIZE,
@@ -258,9 +281,9 @@ void run_tests() {
 
     test::describe("Multiple allocations", []() {
       Allocator allocator = Allocator();
-      test::ok(allocator.allocate(5), "It was able to allocate something");
-      test::ok(allocator.allocate(5), "It was able to allocate something");
-      test::ok(allocator.allocate(5), "It was able to allocate something");
+      test::ok(allocator.allocateBlock(5), "It was able to allocate something");
+      test::ok(allocator.allocateBlock(5), "It was able to allocate something");
+      test::ok(allocator.allocateBlock(5), "It was able to allocate something");
       test::equal(allocator.mActiveBytesAllocated, size_t(15), "Allocated some bytes");
       test::equal(
         allocator.mTotalBytesAllocated,
@@ -271,13 +294,9 @@ void run_tests() {
 
     test::describe("Setting values at allocations", []() {
       Allocator allocator = Allocator();
-      int* a = reinterpret_cast<int*>(allocator.allocate(sizeof(int)));
-      int* b = reinterpret_cast<int*>(allocator.allocate(sizeof(int)));
-      int* c = reinterpret_cast<int*>(allocator.allocate(sizeof(int)));
-
-      *a = 11;
-      *b = 22;
-      *c = 33;
+      auto a = allocator.allocate<int>(11);
+      auto b = allocator.allocate<int>(22);
+      auto c = allocator.allocate<int>(33);
 
       test::equal(*a, 11, "a is equal to 11");
       test::equal(*b, 22, "b is equal to 22");
@@ -286,29 +305,26 @@ void run_tests() {
 
     test::describe("Freeing all allocations", []() {
       Allocator allocator = Allocator();
-      allocator.allocate(5);
-      allocator.allocate(5);
-      allocator.allocate(5);
+      allocator.allocateBlock(5);
+      allocator.allocateBlock(5);
+      allocator.allocateBlock(5);
       test::ok(allocator.mTotalBytesAllocated > 0, "Some bytes have been allocated.");
       allocator.freeAllAllocations();
       test::ok(allocator.mTotalBytesAllocated == 0, "Freeing the allocations results in no bytes.");
     });
 
-    test::describe("Setting values at allocations", []() {
+    test::describe("Re-using space when freeing up the memory", []() {
       Allocator allocator = Allocator();
-      int* a1 = reinterpret_cast<int*>(allocator.allocate(sizeof(int)));
-      int* b1 = reinterpret_cast<int*>(allocator.allocate(sizeof(int)));
-      int* c1 = reinterpret_cast<int*>(allocator.allocate(sizeof(int)));
 
-      *a1 = 11;
-      *b1 = 22;
-      *c1 = 33;
+      auto a1 = allocator.allocate<int>(11);
+      auto b1 = allocator.allocate<int>(22);
+      auto c1 = allocator.allocate<int>(33);
 
       allocator.freeAllAllocations();
 
-      int* a2 = reinterpret_cast<int*>(allocator.allocate(sizeof(int)));
-      int* b2 = reinterpret_cast<int*>(allocator.allocate(sizeof(int)));
-      int* c2 = reinterpret_cast<int*>(allocator.allocate(sizeof(int)));
+      int* a2 = reinterpret_cast<int*>(allocator.allocateBlock(sizeof(int)));
+      int* b2 = reinterpret_cast<int*>(allocator.allocateBlock(sizeof(int)));
+      int* c2 = reinterpret_cast<int*>(allocator.allocateBlock(sizeof(int)));
 
       test::equal(*a1, 11, "a is equal to 11");
       test::equal(*b1, 22, "b is equal to 22");
@@ -336,8 +352,8 @@ void run_tests() {
 
     test::describe("Values allocated get aligned to 8 bytes.", []() {
       Allocator allocator = Allocator();
-      uintptr_t a = reinterpret_cast<uintptr_t>(allocator.allocate(sizeof(int)));
-      uintptr_t b = reinterpret_cast<uintptr_t>(allocator.allocate(sizeof(int)));
+      uintptr_t a = reinterpret_cast<uintptr_t>(allocator.allocateBlock(sizeof(int)));
+      uintptr_t b = reinterpret_cast<uintptr_t>(allocator.allocateBlock(sizeof(int)));
 
       test::ok(sizeof(int) < 8, "The int is less than 8 bytes");
       test::equal(
@@ -354,16 +370,13 @@ void run_tests() {
 
     test::describe("Values can be freed", []() {
       Allocator allocator = Allocator();
-      int* a1 = reinterpret_cast<int*>(allocator.allocate(sizeof(int)));
-      int* b1 = reinterpret_cast<int*>(allocator.allocate(sizeof(int)));
-      int* c1 = reinterpret_cast<int*>(allocator.allocate(sizeof(int)));
-
-      *a1 = 11;
-      *b1 = 22;
-      *c1 = 33;
+      auto a1 = allocator.allocate<int>(11);
+      auto b1 = allocator.allocate<int>(22);
+      auto c1 = allocator.allocate<int>(33);
 
       allocator.free(b1);
-      int* b2 = reinterpret_cast<int*>(allocator.allocate(sizeof(int)));
+
+      int* b2 = reinterpret_cast<int*>(allocator.allocateBlock(sizeof(int)));
 
       test::equal(*a1, 11, "None of the original values are touched. a is equal to 11");
       test::equal(*b1, 22, "None of the original values are touched. b is equal to 22");
@@ -378,10 +391,11 @@ void run_tests() {
 
     test::describe("Freeing a block after an already free block will combine them into one block", []() {
       Allocator allocator = Allocator();
-      allocator.allocate(8);
-      void* a = reinterpret_cast<int*>(allocator.allocate(8));
-      void* b = reinterpret_cast<int*>(allocator.allocate(8));
-      allocator.allocate(8);
+
+      allocator.allocate<int>();
+      auto a = allocator.allocate<int>();
+      auto b = allocator.allocate<int>();
+      allocator.allocate<int>();
 
       test::equal(allocator.countBlocks(), (size_t) 4, "Starts out with 4 blocks");
       allocator.free(a);
@@ -395,14 +409,16 @@ void run_tests() {
 
     test::describe("Freeing a block before an already free block will combine into one block", []() {
       Allocator allocator = Allocator();
-      allocator.allocate(8);
-      void* a = reinterpret_cast<int*>(allocator.allocate(8));
-      void* b = reinterpret_cast<int*>(allocator.allocate(8));
-      allocator.allocate(8);
+
+      allocator.allocate<int>();
+      auto a = allocator.allocate<int>();
+      auto b = allocator.allocate<int>();
+      allocator.allocate<int>();
 
       test::equal(allocator.countBlocks(), (size_t) 4, "Starts out with 4 blocks");
       allocator.free(b);
       allocator.free(a);
+
       test::equal(
         allocator.countBlocks(),
         (size_t) 3,
@@ -412,16 +428,11 @@ void run_tests() {
 
     test::describe("Can allocate into a free block", []() {
       Allocator allocator = Allocator();
-      allocator.allocate(8);
-      int* a = reinterpret_cast<int*>(allocator.allocate(4));
-      int* b = reinterpret_cast<int*>(allocator.allocate(4));
-      int* c = reinterpret_cast<int*>(allocator.allocate(4));
-      int* d = reinterpret_cast<int*>(allocator.allocate(4));
 
-      *a = 11;
-      *b = 22;
-      *c = 33;
-      *d = 44;
+      auto a = allocator.allocate<int>(11);
+      auto b = allocator.allocate<int>(22);
+      auto c = allocator.allocate<int>(33);
+      auto d = allocator.allocate<int>(44);
 
       test::equal(*a, 11, "a is equal to 11");
       test::equal(*b, 22, "b is equal to 22");
@@ -431,17 +442,24 @@ void run_tests() {
       allocator.free(b);
       allocator.free(c);
 
-      long* e = reinterpret_cast<long*>(allocator.allocate(8));
-
-      *e = 55;
+      auto e = allocator.allocate<long>(55);
 
       test::equal(*a, 11, "a is still equal to 11");
       test::equal(*d, 44, "d is still equal to 33");
       test::equal(*e, (long) 55, "e is equal to 55");
 
-      test::ok(reinterpret_cast<void*>(a) < reinterpret_cast<void*>(e), "The a block is earlier than the d block");
-      test::ok(reinterpret_cast<void*>(d) > reinterpret_cast<void*>(e), "The e block was placed before the d block");
-      test::ok(reinterpret_cast<void*>(b) == reinterpret_cast<void*>(e), "The e block was placed in the b block position");
+      test::ok(
+        reinterpret_cast<void*>(a) < reinterpret_cast<void*>(e),
+        "The a block is earlier than the d block"
+      );
+      test::ok(
+        reinterpret_cast<void*>(d) > reinterpret_cast<void*>(e),
+        "The e block was placed before the d block"
+      );
+      test::ok(
+        reinterpret_cast<void*>(b) == reinterpret_cast<void*>(e),
+        "The e block was placed in the b block position"
+      );
     });
   });
 }
