@@ -10,65 +10,92 @@ namespace allocator {
 #define ALLOCATION_BLOCK_SIZE sizeof(class AllocationBlock)
 
 class AllocationBlock {
+  // The payload size does not include the ALLOCATION_BLOCK_SIZE/
+  size_t mPayloadSize;
 public:
-  // Byte size is the size of the stored data, not including the allocation block.
-  size_t byteSize;
   AllocationBlock* next;
   bool isFree;
 
   AllocationBlock()
-    : byteSize(0)
+    : mPayloadSize(0)
     , next(nullptr)
     , isFree(false)
     {}
 
-  AllocationBlock(size_t aByteSize, AllocationBlock* aNext, bool aIsFree)
-    : byteSize(aByteSize)
+  AllocationBlock(size_t aPayloadSize, AllocationBlock* aNext, bool aIsFree)
+    : mPayloadSize(aPayloadSize)
     , next(aNext)
     , isFree(aIsFree)
     {}
+
+  size_t blockSize() {
+    return mPayloadSize + ALLOCATION_BLOCK_SIZE;
+  }
+
+  size_t payloadSize() {
+    return mPayloadSize;
+  }
+
+  void setBlockSize(size_t aBlockSize) {
+    mPayloadSize = aBlockSize - ALLOCATION_BLOCK_SIZE;
+  }
+
+  void setPayloadSize(size_t aPayloadSize) {
+    mPayloadSize = aPayloadSize;
+  }
+
 };
 
 class Allocator {
 public:
-  AllocationBlock mRoot;
-  AllocationBlock* mTip;
+  AllocationBlock* mRoot;
+  size_t mBlockByteSize;
   size_t mTotalBytesAllocated;
   size_t mActiveBytesAllocated;
 
-  Allocator()
-    : mRoot(AllocationBlock())
-    , mTip(&mRoot)
+  Allocator(size_t aBlockByteSize)
+    // Create a root allocation block, allocating the required bytes using malloc.
+    : mRoot(new (malloc(aBlockByteSize)) AllocationBlock(
+      aBlockByteSize - ALLOCATION_BLOCK_SIZE, // payload size
+      nullptr,
+      true
+    ))
+    , mBlockByteSize(aBlockByteSize)
     , mTotalBytesAllocated(0)
     , mActiveBytesAllocated(0)
     {}
 
   ~Allocator() {
-    this->freeAllAllocations();
+    free(reinterpret_cast<void *>(mRoot));
   }
 
+  /**
+   * Attempt to free the memory, returns true on success, false on failure.
+   */
   bool free(void* pointer) {
-    AllocationBlock* block = &mRoot;
-    AllocationBlock* targetBlock = reinterpret_cast<AllocationBlock*>(
+    const AllocationBlock* unsafeTargetBlock = reinterpret_cast<AllocationBlock*>(
       reinterpret_cast<uintptr_t>(pointer) - ALLOCATION_BLOCK_SIZE
     );
-    AllocationBlock* previousBlock = nullptr;
     // We could naively use the pointer, but let's not trust it and walk
     // the linked list to find the block.
+    AllocationBlock* block = mRoot;
+    AllocationBlock* previousBlock = nullptr;
     do {
-      if (block == targetBlock) {
+      if (block == unsafeTargetBlock) {
         block->isFree = true;
         auto nextBlock = block->next;
         if (nextBlock && nextBlock->isFree) {
           // The next block is free as well, so combine the two blocks of memory.
           block->next = nextBlock->next;
-          block->byteSize += ALLOCATION_BLOCK_SIZE + nextBlock->byteSize;
+          block->setPayloadSize(block->payloadSize() + nextBlock->blockSize());
         }
 
         if (previousBlock && previousBlock->isFree) {
           // The previous block is free as well, so combine the two blocks of memory.
           previousBlock->next = block->next;
-          previousBlock->byteSize += ALLOCATION_BLOCK_SIZE + block->byteSize;
+          previousBlock->setPayloadSize(
+            previousBlock->payloadSize() + block->blockSize()
+          );
         }
         return true;
       }
@@ -82,7 +109,7 @@ public:
 
   size_t countBlocks() {
     size_t count = 0;
-    AllocationBlock* block = &mRoot;
+    AllocationBlock* block = mRoot;
     while ((block = block->next)) {
       count++;
     }
@@ -90,87 +117,35 @@ public:
   }
 
   void freeAllAllocations() {
-    if (this->canResetProgramBreakPointer()) {
-      // This doesn't actually work on macOS. It was a fun theory.
-      // https://stackoverflow.com/questions/22666728/sbrk-and-negative-parameter
-      sbrk(-mTotalBytesAllocated);
-    }
-    mTip = &mRoot;
+    mRoot->setBlockSize(mBlockByteSize);
+    mRoot->next= nullptr;
+    mRoot->isFree = true;
     mTotalBytesAllocated = 0;
     mActiveBytesAllocated = 0;
   }
 
-  bool canResetProgramBreakPointer() {
-    if (mRoot.next == nullptr) {
-      return true;
-    }
-    if (mTip == &mRoot) {
-      // Don't reset the program counter if nothing has been allocated.
-      return false;
-    }
-    // Use pointers to determine the size of the allocations.
-    long int allocationsByPointerMath = (
-      // Take the tip location.
-      reinterpret_cast<uintptr_t>(mTip)
-      // Add on the latest allocation block's memory size.
-      + mTip->byteSize + ALLOCATION_BLOCK_SIZE
-      // Subtract the starting root memory location
-      - reinterpret_cast<uintptr_t>(mRoot.next)
-    );
-    return allocationsByPointerMath == mTotalBytesAllocated;
-  }
-
-  AllocationBlock* findFreeBlock(const size_t byteSize) {
-    AllocationBlock* block = &mRoot;
+  AllocationBlock* findFreeBlock(const size_t payloadSize) {
+    AllocationBlock* block = mRoot;
 
     // Walk the linked list and try to find a new block.
     do {
-      if (block->isFree && byteSize <= block->byteSize) {
+      if (block->isFree && payloadSize <= block->payloadSize()) {
         // This block is free and big enough to add the data.
         return block;
       }
       block = block->next;
     } while(block);
 
-    return this->allocateNewBlock(byteSize);
+    return nullptr;
   }
 
-  AllocationBlock* allocateNewBlock(const size_t byteSize) {
-    if (byteSize == 0) {
-      // This value doesn't make sense.
-      return nullptr;
-    }
-
-    // Align this byte value to 8 bits.
-    // Sorry for the bitshifting.
-    const size_t byteSizeAligned = (((byteSize - 1) >> 3) << 3) + 8;
-    // The allocation block is already aligned. Add that on.
-    const size_t totalSize = ALLOCATION_BLOCK_SIZE + byteSizeAligned;
-
-    // There isn't any space in the existing blocks. Start to allocate a new one.
-    AllocationBlock* newBlock = reinterpret_cast<AllocationBlock*>(sbrk(0));
-
-    // Allocate enough space for the AllocationBlock and the bytes needed.
-    const void* response = sbrk(totalSize);
-    if (response == (void *) -1) {
-      return nullptr;
-    }
-
-    // Remember how many bytes we are holding onto.
-    mTotalBytesAllocated += totalSize;
-    mActiveBytesAllocated += byteSize;
-
-    // Set the fields of the bock.
-    newBlock->byteSize = byteSizeAligned;
-    newBlock->next = nullptr;
-    newBlock->isFree = false;
-
-    // Replace the tip.
-    mTip->next = newBlock;
-    mTip = newBlock;
-
-    // Offset the pointer to return the free space.
-    return newBlock;
+  /**
+   * Align the byte value to 8 bits.
+   */
+  static size_t alignBytes(size_t byteSize) {
+    // Sorry for the bitshifting. Given 2^3 == 8, chopping off the least significant bits
+    // with bit shifting 3 will align the value to 8 bits.
+    return (((byteSize - 1) >> 3) << 3) + 8;
   }
 
   /**
@@ -187,49 +162,59 @@ public:
     return new (pointer) AllocatedType(std::forward<Args>(aArgs)...);
   }
 
-  void* allocateBlock(const size_t bytesToAllocate) {
-    AllocationBlock* block = this->findFreeBlock(bytesToAllocate);
-    if (!block) {
+  /**
+   * This function sets a block to a payload size. If it has remaining bytes free, it
+   * split this block into two blocks, the first with the payload, the second free.
+   */
+  void static setBlockWithPayload(AllocationBlock* block, size_t payloadSizeToAllocate) {
+    // Ensure this is a valid allocation.
+    assert(block->payloadSize() >= payloadSizeToAllocate);
+
+    // Is there remaining free space to create a new block?
+    auto freeBytesAfterAllocation = block->payloadSize() - payloadSizeToAllocate;
+    if (freeBytesAfterAllocation > ALLOCATION_BLOCK_SIZE) {
+      // There is enough room in this block to split it into two blocks, where
+      // the first contains the payload, and the second is free.
+      void* pointerToNextBlock = reinterpret_cast<void *>(
+        // Move the pointer forward to the next allocation block.
+        reinterpret_cast<uintptr_t>(block) + ALLOCATION_BLOCK_SIZE + payloadSizeToAllocate
+      );
+
+      // Set the values for the new split free block.
+      auto newFreeBlock = new(pointerToNextBlock) AllocationBlock(
+        freeBytesAfterAllocation - ALLOCATION_BLOCK_SIZE, // Free block's payload size.
+        block->next,
+        true // This block is free.
+      );
+
+      // Update the existing block with the new information.
+      block->next = newFreeBlock;
+      block->setPayloadSize(payloadSizeToAllocate);
+    }
+    block->isFree = false;
+  }
+
+  void* allocateBlock(const size_t payloadSize) {
+    if (payloadSize == 0) {
+      // This value doesn't make sense.
       return nullptr;
     }
 
-    // Compute the remaining free bytes if another allocation block were created.
-    if (block->next) {
-      size_t bytesBetweenBlocks =
-        reinterpret_cast<uintptr_t>(block->next) - reinterpret_cast<uintptr_t>(block);
+    auto payloadSizeToAllocate = Allocator::alignBytes(payloadSize);
 
-      size_t remainingFreeBytes =
-        // Start with the number of bytes between blocks.
-        bytesBetweenBlocks -
-        // Remove the bytes we want to allocate right now.
-        bytesToAllocate -
-        // Remove this allocation's block size.
-        ALLOCATION_BLOCK_SIZE -
-        // And remove the NEXT allocation's block size, this leaves the remaining
-        // available bytes for the next allocation.
-        ALLOCATION_BLOCK_SIZE;
-
-      if (remainingFreeBytes > 0) {
-        // The remaining blocks have enough space for another allocation block.
-        void* pointer = reinterpret_cast<void *>(
-          // Move the pointer forward to the next allocation block.
-          reinterpret_cast<uintptr_t>(block) + ALLOCATION_BLOCK_SIZE + bytesToAllocate
-        );
-
-        // Set the values for the new split block block.
-        auto newSplitBlock = new(pointer) AllocationBlock(
-          remainingFreeBytes,
-          block->next,
-          true
-        );
-
-        // Re-point the existing block.
-        block->next = newSplitBlock;
-        block->byteSize = bytesToAllocate;
-      }
+    AllocationBlock* block = this->findFreeBlock(payloadSizeToAllocate);
+    if (!block) {
+      // No space is available for the allocation.
+      return nullptr;
     }
 
-    // Return a pointer to the allocated space.
+    Allocator::setBlockWithPayload(block, payloadSizeToAllocate);
+
+    // Remember how many bytes we are holding onto.
+    mTotalBytesAllocated += payloadSizeToAllocate + ALLOCATION_BLOCK_SIZE;
+    mActiveBytesAllocated += payloadSize;
+
+    // Return a pointer to the payload.
     return reinterpret_cast<void*>(
       reinterpret_cast<uintptr_t>(block) + ALLOCATION_BLOCK_SIZE
     );
@@ -241,32 +226,8 @@ void run_tests() {
   assert(sizeof(size_t) == 8);
 
   test::suite("memory::allocator", []() {
-    test::describe("calling sbrk", []() {
-      void *programBreakMemoryAddress = sbrk(0);
-      test::ok(programBreakMemoryAddress, "It returns a memory address");
-    });
-
-    test::describe("basic allocation", []() {
-      void *start = sbrk(5);
-      void *end = sbrk(0);
-      test::equal(
-        long(end) - long(start),
-        long(5),
-        "It can allocate 5 bytes"
-      );
-    });
-
-    test::describe("allocation failures", []() {
-      void *failure = sbrk(1000000000);
-      test::equal(
-        failure,
-        reinterpret_cast<void *>(-1),
-        "It will fail when given values it can't work with."
-      );
-    });
-
     test::describe("A basic allocation", []() {
-      Allocator allocator = Allocator();
+      Allocator allocator = Allocator(1024);
       test::equal(allocator.mActiveBytesAllocated, size_t(0), "No bytes allocated");
       test::equal(allocator.mTotalBytesAllocated, size_t(0), "No bytes allocated");
 
@@ -280,7 +241,7 @@ void run_tests() {
     });
 
     test::describe("Multiple allocations", []() {
-      Allocator allocator = Allocator();
+      Allocator allocator = Allocator(1024);
       test::ok(allocator.allocateBlock(5), "It was able to allocate something");
       test::ok(allocator.allocateBlock(5), "It was able to allocate something");
       test::ok(allocator.allocateBlock(5), "It was able to allocate something");
@@ -293,7 +254,7 @@ void run_tests() {
     });
 
     test::describe("Setting values at allocations", []() {
-      Allocator allocator = Allocator();
+      Allocator allocator = Allocator(1024);
       auto a = allocator.allocate<int>(11);
       auto b = allocator.allocate<int>(22);
       auto c = allocator.allocate<int>(33);
@@ -304,7 +265,7 @@ void run_tests() {
     });
 
     test::describe("Freeing all allocations", []() {
-      Allocator allocator = Allocator();
+      Allocator allocator = Allocator(1024);
       allocator.allocateBlock(5);
       allocator.allocateBlock(5);
       allocator.allocateBlock(5);
@@ -314,7 +275,7 @@ void run_tests() {
     });
 
     test::describe("Re-using space when freeing up the memory", []() {
-      Allocator allocator = Allocator();
+      Allocator allocator = Allocator(1024);
 
       auto a1 = allocator.allocate<int>(11);
       auto b1 = allocator.allocate<int>(22);
@@ -338,20 +299,13 @@ void run_tests() {
       test::equal(*b2, 55, "b2 is equal to 55");
       test::equal(*c2, 66, "c2 is equal to 66");
 
-      /**
-       * The program break pointer doesn't actually decrement in macOS.
-       * https://stackoverflow.com/questions/22666728/sbrk-and-negative-parameter
-       * In theory I should be able to change the values for the older values,
-       * but this doesn't seem to do anything.
-       */
-
-      // test::equal(*a1, 44, "a1 is equal to 44");
-      // test::equal(*b1, 55, "b1 is equal to 55");
-      // test::equal(*c1, 66, "c1 is equal to 66");
+      test::equal(*a1, 44, "a1 is equal to 44");
+      test::equal(*b1, 55, "b1 is equal to 55");
+      test::equal(*c1, 66, "c1 is equal to 66");
     });
 
     test::describe("Values allocated get aligned to 8 bytes.", []() {
-      Allocator allocator = Allocator();
+      Allocator allocator = Allocator(1024);
       uintptr_t a = reinterpret_cast<uintptr_t>(allocator.allocateBlock(sizeof(int)));
       uintptr_t b = reinterpret_cast<uintptr_t>(allocator.allocateBlock(sizeof(int)));
 
@@ -369,7 +323,7 @@ void run_tests() {
     });
 
     test::describe("Values can be freed", []() {
-      Allocator allocator = Allocator();
+      Allocator allocator = Allocator(1024);
       auto a1 = allocator.allocate<int>(11);
       auto b1 = allocator.allocate<int>(22);
       auto c1 = allocator.allocate<int>(33);
@@ -390,7 +344,7 @@ void run_tests() {
     });
 
     test::describe("Freeing a block after an already free block will combine them into one block", []() {
-      Allocator allocator = Allocator();
+      Allocator allocator = Allocator(1024);
 
       allocator.allocate<int>();
       auto a = allocator.allocate<int>();
@@ -408,7 +362,7 @@ void run_tests() {
     });
 
     test::describe("Freeing a block before an already free block will combine into one block", []() {
-      Allocator allocator = Allocator();
+      Allocator allocator = Allocator(1024);
 
       allocator.allocate<int>();
       auto a = allocator.allocate<int>();
@@ -427,7 +381,7 @@ void run_tests() {
     });
 
     test::describe("Can allocate into a free block", []() {
-      Allocator allocator = Allocator();
+      Allocator allocator = Allocator(1024);
 
       auto a = allocator.allocate<int>(11);
       auto b = allocator.allocate<int>(22);
