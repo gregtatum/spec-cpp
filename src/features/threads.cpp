@@ -15,7 +15,8 @@ void fn() {
 
 // Using the sieve of Eratosthenese.
 std::vector<char> computePrimesSerially(size_t count) {
-  // Use an int rather than bool, so we don't pack
+  // Use an char rather than bool so that we don't used the vector's built in packed
+  // version of the bool, which takes extra computation cycles to extract.
   std::vector<char> primes(count);
   std::fill (primes.begin(), primes.end(), true);
   size_t primeCountSqrt = std::sqrt(count);
@@ -49,7 +50,14 @@ public:
     , mWriterCount(std::thread::hardware_concurrency())
     , mPrimes(new std::atomic<bool>[aPrimeCount])
     , mAreWritersFree(new std::atomic<bool>[mWriterCount])
-  {
+  {}
+
+  ~ParallelPrimes() {
+    delete [] mPrimes;
+    delete [] mAreWritersFree;
+  }
+
+  void compute() {
     for (size_t i = 0; i < mPrimeCount; i++) {
       // Initialize the array values.
       mPrimes[i].store(true, std::memory_order_relaxed);
@@ -58,14 +66,7 @@ public:
       // Initialize the array values.
       mAreWritersFree[i].store(true, std::memory_order_relaxed);
     }
-  }
 
-  ~ParallelPrimes() {
-    delete [] mPrimes;
-    delete [] mAreWritersFree;
-  }
-
-  void compute() {
     const size_t primeCountSqrt = std::sqrt(mPrimeCount);
     size_t lastWriterMultiple = 0;
 
@@ -109,7 +110,7 @@ public:
       std::ref(mPrimes),
       mAreWritersFree
     );
-    writerThread.join();
+    writerThread.detach();
   }
 
   std::atomic<bool>* awaitFreeWriter() {
@@ -178,7 +179,8 @@ long timeExecution(std::function<void ()> callback) {
 
 void run_tests() {
   test::suite("features::primes", []() {
-    size_t timing_count = 10000;
+    // size_t timing_count = 10000;
+    size_t timing_count = 1000000;
     test::describe("timing in serial", [&]() {
       auto timing = timeExecution([&]() { computePrimesSerially(timing_count); });
       printf("    ℹ It took %ld microseconds to compute %ld primes in serial\n", timing, timing_count);
@@ -215,7 +217,7 @@ void run_tests() {
       test::equal((bool) primes[10], false, "10 is not prime");
     });
 
-    test::describe("compute primes serially", []() {
+    test::describe("compute primes parallel", []() {
       ParallelPrimes primes(1000);
       auto timing = timeExecution([&]() {
         primes.compute();
@@ -223,19 +225,30 @@ void run_tests() {
 
       printf("    ℹ It took %ld microseconds\n", timing);
 
-      test::equal((bool) primes.isPrime(1), true, "1 is prime");
-      test::equal((bool) primes.isPrime(2), true, "2 is prime");
-      test::equal((bool) primes.isPrime(3), true, "3 is prime");
-      test::equal((bool) primes.isPrime(5), true, "5 is prime");
-      test::equal((bool) primes.isPrime(7), true, "7 is prime");
-      test::equal((bool) primes.isPrime(11), true, "9 is prime");
+      test::equal(primes.isPrime(1), true, "1 is prime");
+      test::equal(primes.isPrime(2), true, "2 is prime");
+      test::equal(primes.isPrime(3), true, "3 is prime");
+      test::equal(primes.isPrime(5), true, "5 is prime");
+      test::equal(primes.isPrime(7), true, "7 is prime");
+      test::equal(primes.isPrime(11), true, "9 is prime");
 
-      test::equal((bool) primes.isPrime(4), false, "4 is not prime");
-      test::equal((bool) primes.isPrime(6), false, "6 is not prime");
-      test::equal((bool) primes.isPrime(8), false, "8 is not prime");
-      test::equal((bool) primes.isPrime(9), false, "9 is not prime");
-      test::equal((bool) primes.isPrime(10), false, "10 is not prime");
+      test::equal(primes.isPrime(4), false, "4 is not prime");
+      test::equal(primes.isPrime(6), false, "6 is not prime");
+      test::equal(primes.isPrime(8), false, "8 is not prime");
+      test::equal(primes.isPrime(9), false, "9 is not prime");
+      test::equal(primes.isPrime(10), false, "10 is not prime");
     });
+  });
+
+  test::describe("serial and parallel both have the same values", [&]() {
+    ParallelPrimes parallelPrimes(1000);
+    parallelPrimes.compute();
+    auto serialPrimes = computePrimesSerially(1000);
+    bool doMatch = true;
+    for (size_t i = 0; i < serialPrimes.size(); i++) {
+      doMatch = doMatch && parallelPrimes.isPrime(i) == (bool) serialPrimes[i];
+    }
+    test::ok(doMatch, "the results agree");
   });
 
   test::suite("features::threads", []() {
