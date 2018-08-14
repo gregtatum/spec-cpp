@@ -14,9 +14,9 @@ void fn() {
 }
 
 // Using the sieve of Eratosthenese.
-std::vector<int> computePrimesSerially(size_t count) {
+std::vector<char> computePrimesSerially(size_t count) {
   // Use an int rather than bool, so we don't pack
-  std::vector<int> primes(count);
+  std::vector<char> primes(count);
   std::fill (primes.begin(), primes.end(), true);
   size_t primeCountSqrt = std::sqrt(count);
 
@@ -193,7 +193,7 @@ void run_tests() {
     });
 
     test::describe("compute primes serially", []() {
-      std::vector<int> primes;
+      std::vector<char> primes;
 
       auto timing = timeExecution([&]() {
         primes = computePrimesSerially(1000);
