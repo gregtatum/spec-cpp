@@ -41,30 +41,23 @@ std::vector<char> computePrimesSerially(size_t count) {
 class ParallelPrimes {
   // Use dynamically allocated arrays rather than vectors, in order to support atomics.
   size_t mPrimeCount;
-  size_t mWriterCount;
   std::atomic<bool>* mPrimes;
-  std::atomic<bool>* mAreWritersFree;
+  std::vector<std::thread> mThreads;
 public:
   ParallelPrimes(size_t aPrimeCount)
     : mPrimeCount(aPrimeCount)
-    , mWriterCount(std::thread::hardware_concurrency())
     , mPrimes(new std::atomic<bool>[aPrimeCount])
-    , mAreWritersFree(new std::atomic<bool>[mWriterCount])
+    , mThreads(std::vector<std::thread> {})
   {}
 
   ~ParallelPrimes() {
     delete [] mPrimes;
-    delete [] mAreWritersFree;
   }
 
   void compute() {
     for (size_t i = 0; i < mPrimeCount; i++) {
       // Initialize the array values.
       mPrimes[i].store(true, std::memory_order_relaxed);
-    }
-    for (size_t i = 0; i < mWriterCount; i++) {
-      // Initialize the array values.
-      mAreWritersFree[i].store(true, std::memory_order_relaxed);
     }
 
     const size_t primeCountSqrt = std::sqrt(mPrimeCount);
@@ -102,37 +95,20 @@ public:
   }
 
   void launchWriter(size_t aStartingMultipleIndex, size_t aPrimeValue) {
-    std::thread writerThread(
+    mThreads.push_back(std::thread {
       ParallelPrimes::writeMultiples,
       aStartingMultipleIndex,
       aPrimeValue, // primeValue
       mPrimeCount,
-      std::ref(mPrimes),
-      mAreWritersFree
-    );
-    writerThread.detach();
+      std::ref(mPrimes)
+    });
   }
-
-  std::atomic<bool>* awaitFreeWriter() {
-    do {
-      for (size_t i = 0; i < mWriterCount; i++) {
-        std::atomic<bool>& isWriterFree = mAreWritersFree[i];
-        if (isWriterFree) {
-          isWriterFree = false;
-          return &isWriterFree;
-        }
-      }
-      // Continue looping until one is found.
-    } while (true);
-  }
-
 
   static void writeMultiples(
     size_t startingMultipleIndex,
     size_t primeValue,
     size_t primeCount,
-    std::atomic<bool>*& primes,
-    std::atomic<bool>* isDone
+    std::atomic<bool>*& primes
   ) {
     for (
       size_t j = startingMultipleIndex;
@@ -141,7 +117,6 @@ public:
     ) {
       primes[j].store(false, std::memory_order_relaxed);
     }
-    *isDone = true;
   }
 
   bool isPrime(size_t number) {
@@ -149,21 +124,10 @@ public:
   }
 
   void awaitAllWriters() {
-    // The outstandingWriters list is full, try and find a free one.
-    do{
-      bool areAllWritersDone = true;
-
-      for (size_t i = 0; i < mWriterCount; i++) {
-        if (!mAreWritersFree[i]) {
-          areAllWritersDone = false;
-          break;
-        }
-      }
-      if (areAllWritersDone) {
-        return;
-      }
-      // Continue looping until all of them have finished.
-    } while (true);
+    for (size_t i = 0; i < mThreads.size(); i++) {
+      mThreads[i].join();
+    }
+    mThreads.clear();
   }
 };
 
@@ -180,7 +144,7 @@ long timeExecution(std::function<void ()> callback) {
 void run_tests() {
   test::suite("features::primes", []() {
     // size_t timing_count = 10000;
-    size_t timing_count = 1000000;
+    size_t timing_count = 100000000;
     test::describe("timing in serial", [&]() {
       auto timing = timeExecution([&]() { computePrimesSerially(timing_count); });
       printf("    ℹ It took %ld microseconds to compute %ld primes in serial\n", timing, timing_count);
