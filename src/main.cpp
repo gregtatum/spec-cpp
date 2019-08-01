@@ -11,6 +11,7 @@
 #include "mfbt/TestMaybe.h"
 #include "memory/Allocator.h"
 #include "memory/stack.h"
+#include "rusty/box.h"
 #include "rusty/option.h"
 #include "rusty/vec.h"
 #include "test.h"
@@ -26,6 +27,7 @@ int main()
   features::smartPointers::run_tests();
   features::threads::run_tests();
   features::vector::run_tests();
+  rusty::box::run_tests();
   rusty::option::run_tests();
   rusty::vec::run_tests();
   test::run_tests();
