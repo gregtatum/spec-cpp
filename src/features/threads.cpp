@@ -39,18 +39,41 @@ std::vector<char> computePrimesSerially(size_t count) {
 }
 
 class ParallelPrimes {
+  class ThreadCommunication {
+  public:
+    std::atomic<bool> mIsRunning;
+    std::atomic<bool> mHasData;
+    // Data:
+    std::atomic<size_t> mStartingMultipleIndex;
+    std::atomic<size_t> mPrimeValue;
+
+    ThreadCommunication()
+      : mIsRunning(true)
+      , mHasData(false)
+      , mStartingMultipleIndex(0)
+      , mPrimeValue(0)
+      {}
+  };
+
   // Use dynamically allocated arrays rather than vectors, in order to support atomics.
   size_t mPrimeCount;
+  size_t mThreadCount;
   std::atomic<bool>* mPrimes;
-  std::vector<std::thread> mThreads;
+  // The following are arrays of pointers.
+  std::thread** mThreads;
+  ThreadCommunication** mThreadCommunications;
 public:
   ParallelPrimes(size_t aPrimeCount)
     : mPrimeCount(aPrimeCount)
+    , mThreadCount(std::thread::hardware_concurrency())
     , mPrimes(new std::atomic<bool>[aPrimeCount])
-    , mThreads(std::vector<std::thread> {})
+    , mThreads(new std::thread* [mThreadCount])
+    , mThreadCommunications(new ThreadCommunication* [mThreadCount])
   {}
 
   ~ParallelPrimes() {
+    delete [] mThreads;
+    delete [] mThreadCommunications;
     delete [] mPrimes;
   }
 
@@ -59,24 +82,25 @@ public:
       // Initialize the array values.
       mPrimes[i].store(true, std::memory_order_relaxed);
     }
+    this->initializeThreads();
 
     const size_t primeCountSqrt = std::sqrt(mPrimeCount);
-    size_t lastWriterMultiple = 0;
+    size_t lastKnownMultiple = 0;
 
     for (size_t i = 2; i < primeCountSqrt; i++) {
-      if (i > lastWriterMultiple) {
+      if (i > lastKnownMultiple) {
         // Wait for all writers to finish, we can't yet read from any of the following
         // samples.
         this->awaitAllWriters();
 
         // Set the NEXT multiple of this value to not being prime, then we can kick
         // of writers for every value from this until the next multiple.
-        lastWriterMultiple = i * 2;
+        lastKnownMultiple = i * 2;
 
         // Is this prime?
         if (mPrimes[i].load(std::memory_order_relaxed)) {
-          // The next multiple is prime, mark the lastWriterMultiple location as a multiple.
-          mPrimes[lastWriterMultiple].store(false, std::memory_order_relaxed);
+          // Mark the lastKnownMultiple location as a multiple.
+          mPrimes[lastKnownMultiple].store(false, std::memory_order_relaxed);
 
           // This value is prime! Kick off more writers.
           // Kick off a writer that will write out the multiples until the end of the
@@ -92,16 +116,70 @@ public:
     }
 
     this->awaitAllWriters();
+    this->stopAllThreads();
   }
 
-  void launchWriter(size_t aStartingMultipleIndex, size_t aPrimeValue) {
-    mThreads.push_back(std::thread {
-      ParallelPrimes::writeMultiples,
-      aStartingMultipleIndex,
-      aPrimeValue, // primeValue
-      mPrimeCount,
-      std::ref(mPrimes)
-    });
+  void stopAllThreads() {
+    for (size_t i = 0; i < mThreadCount; i++) {
+      // Make sure all the threads are joined, so they aren't dangling and
+      // still operating.
+      mThreadCommunications[i]->mIsRunning = false;
+      mThreads[i]->join();
+      delete mThreads[i];
+      delete mThreadCommunications[i];
+    }
+  }
+
+  void launchWriter(size_t startingMultipleIndex, size_t primeValue) {
+    while (true) {
+      // Loop forever looking for a free worker in the thread pool.
+      for (
+        size_t threadIndex = 0;
+        threadIndex < mThreadCount;
+        threadIndex++
+      ) {
+        // Go through each active worker, and examine it's data.
+        if (!mThreadCommunications[threadIndex]->mHasData) {
+          // This free has no data, set it, and it will in turn find it, and write
+          // out the multiples.
+          mThreadCommunications[threadIndex]->mStartingMultipleIndex = startingMultipleIndex;
+          mThreadCommunications[threadIndex]->mPrimeValue = primeValue;
+          // Make sure and set this value last:
+          mThreadCommunications[threadIndex]->mHasData = true;
+          return;
+        }
+      }
+    }
+  }
+
+  void initializeThreads() {
+    for (size_t i = 0; i < mThreadCount; i++) {
+      mThreadCommunications[i] = new ThreadCommunication {};
+      mThreads[i] = new std::thread {
+        ParallelPrimes::threadRunner,
+        std::ref(mThreadCommunications[i]),
+        std::ref(mPrimes),
+        mPrimeCount
+      };
+    }
+  }
+
+  static void threadRunner(
+    ThreadCommunication*& aThreadCommunication,
+    std::atomic<bool>*& primes,
+    size_t primeCount
+  ) {
+    while (aThreadCommunication->mIsRunning) {
+      if (aThreadCommunication->mHasData) {
+        ParallelPrimes::writeMultiples(
+          aThreadCommunication->mStartingMultipleIndex,
+          aThreadCommunication->mPrimeValue,
+          primeCount,
+          primes
+        );
+        aThreadCommunication->mHasData = false;
+      }
+    }
   }
 
   static void writeMultiples(
@@ -124,10 +202,20 @@ public:
   }
 
   void awaitAllWriters() {
-    for (size_t i = 0; i < mThreads.size(); i++) {
-      mThreads[i].join();
+    while (true) {
+      // Loop forever looking for a free worker in the thread pool.
+      bool areThreadsDone = true;
+      for (
+        size_t threadIndex = 0;
+        threadIndex < mThreadCount;
+        threadIndex++
+      ) {
+        areThreadsDone = areThreadsDone && !mThreadCommunications[threadIndex]->mHasData;
+      }
+      if (areThreadsDone) {
+        return;
+      }
     }
-    mThreads.clear();
   }
 };
 
@@ -143,7 +231,7 @@ long timeExecution(std::function<void ()> callback) {
 
 void run_tests() {
   test::suite("features::primes", []() {
-    // size_t timing_count = 10000;
+    // size_t timing_count = 1000;
     size_t timing_count = 100000000;
     test::describe("timing in serial", [&]() {
       auto timing = timeExecution([&]() { computePrimesSerially(timing_count); });
@@ -157,7 +245,7 @@ void run_tests() {
       });
       printf("    ℹ It took %ld microseconds to compute %ld primes using concurrent writers\n", timing, timing_count);
     });
-
+    return;
     test::describe("compute primes serially", []() {
       std::vector<char> primes;
 
