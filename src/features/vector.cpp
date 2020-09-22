@@ -32,7 +32,7 @@ template <typename T> std::string toString(T &&vec) {
 /**
  * Do a non-sensical check to demonstrate that a value can be accessed.
  */
-bool intExists(int value) { return value >= 0 || value < 0; }
+bool intExists(int value) { return true; }
 
 /**
  * This is a helper function that applies toString to vectors and asserts their
