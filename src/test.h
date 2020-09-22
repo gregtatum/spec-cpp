@@ -30,4 +30,7 @@ template <typename T> void equal(T a, T b, const std::string &message) {
   }
 }
 
+// This macro shows off something that will not compile
+#define COMPILER_ERROR(...)
+
 } // namespace test

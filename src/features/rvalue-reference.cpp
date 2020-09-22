@@ -60,17 +60,19 @@ void run_tests() {
     test::describe("MoveOnly", []() {
       MoveOnly a{};
 
-      // "a" cannot be copied.
-      // MoveOnly b{a};
+      COMPILER_ERROR(
+          // "a" cannot be copied.
+          MoveOnly b{a};
 
-      // clang-format off
-      // src/features/rvalue-reference.cpp:63:16: error: call to implicitly-deleted copy constructor of 'MoveOnly'
-      //       MoveOnly b{a};
-      //                ^~~~
-      // src/features/rvalue-reference.cpp:54:7: note: copy constructor is implicitly deleted because 'MoveOnly' has a user-declared move constructor
-      //       MoveOnly(MoveOnly &&other) = default;
-      //       ^
-      // clang-format on
+          // clang-format off
+          // src/features/rvalue-reference.cpp:63:16: error: call to implicitly-deleted copy constructor of 'MoveOnly'
+          //       MoveOnly b{a};
+          //                ^~~~
+          // src/features/rvalue-reference.cpp:54:7: note: copy constructor is implicitly deleted because 'MoveOnly' has a user-declared move constructor
+          //       MoveOnly(MoveOnly &&other) = default;
+          //       ^
+          // clang-format on
+      );
 
       // "a" can be moved.
       MoveOnly c{std::move(a)};
@@ -89,20 +91,80 @@ void run_tests() {
     test::describe("DisableCopyMove", []() {
       DisableCopyMove a{};
 
-      // A cannot be copied.
-      // DisableCopyMove b{a};
+      COMPILER_ERROR(
+          // A cannot be copied.
+          DisableCopyMove b{a};
 
-      // clang-format off
-      // src/features/rvalue-reference.cpp:42:23: error: call to deleted constructor of 'DisableCopyMove'
-      //       DisableCopyMove b{a};
-      //                       ^~~~
-      // src/features/rvalue-reference.cpp:35:7: note: 'DisableCopyMove' has been explicitly marked deleted here
-      //       DisableCopyMove(const DisableCopyMove &) = delete;
-      //       ^
-      // clang-format on
+          // clang-format off
+          // src/features/rvalue-reference.cpp:42:23: error: call to deleted constructor of 'DisableCopyMove'
+          //       DisableCopyMove b{a};
+          //                       ^~~~
+          // src/features/rvalue-reference.cpp:35:7: note: 'DisableCopyMove' has been explicitly marked deleted here
+          //       DisableCopyMove(const DisableCopyMove &) = delete;
+          //       ^
+          // clang-format on
 
-      // A cannot be moved, either. The same compiler error is generated.
-      // DisableCopyMove c{std::move(a)};
+          // A cannot be moved, either. The same compiler error is generated.
+          DisableCopyMove c{std::move(a)};);
+    });
+
+    class Unspecified {
+    public:
+      Unspecified(){};
+    };
+
+    test::describe("Unspecified", []() {
+      Unspecified a{};
+      // "a" can be copied.
+      Unspecified b{a};
+      // "a" can be moved.
+      Unspecified c{std::move(a)};
+
+      test::ignore(b);
+      test::ignore(c);
+    });
+
+    class MoveOnlyMember {
+    public:
+      COMPILER_ERROR(
+          // Allow copy
+          MoveOnlyMember(const MoveOnlyMember &other) = default;
+          MoveOnlyMember & operator=(const MoveOnlyMember &other) = default;
+
+          // clang-format off
+          // src/features/rvalue-reference.cpp:128:7: error: explicitly defaulted copy constructor is implicitly deleted [-Werror,-Wdefaulted-function-deleted]
+          //       MoveOnlyMember(const MoveOnlyMember &other) = default;
+          //       ^
+          // src/features/rvalue-reference.cpp:134:16: note: copy constructor of 'MoveOnlyMember' is implicitly deleted because field 'mMoveOnly' has a deleted copy constructor
+          //       MoveOnly mMoveOnly = {};
+          // clang-format on
+      )
+
+      MoveOnlyMember(){};
+      MoveOnly mMoveOnly = {};
+    };
+
+    test::describe("MoveOnlyMember", []() {
+      MoveOnlyMember a{};
+
+      COMPILER_ERROR(
+          // "a" cannot be copied.
+          MoveOnlyMember b{a};
+
+          // clang-format off
+          // src/features/rvalue-reference.cpp:133:22: error: call to implicitly-deleted copy constructor of 'MoveOnlyMember'
+          //       MoveOnlyMember b{a};
+          //                      ^~~~
+          // src/features/rvalue-reference.cpp:127:16: note: copy constructor of 'MoveOnlyMember' is implicitly deleted because field 'mMoveOnly' has a deleted copy constructor
+          //       MoveOnly mMoveOnly = {};
+          //                ^
+          // clang-format on
+      )
+
+      // "a" can be moved.
+      MoveOnlyMember c{std::move(a)};
+
+      test::ignoreRValue(std::move(c));
     });
   });
 }
