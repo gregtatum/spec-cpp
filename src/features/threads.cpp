@@ -290,17 +290,17 @@ void run_tests() {
       test::equal(primes.isPrime(9), false, "9 is not prime");
       test::equal(primes.isPrime(10), false, "10 is not prime");
     });
-  });
 
-  test::describe("serial and parallel both have the same values", [&]() {
-    ParallelPrimes parallelPrimes(1000);
-    parallelPrimes.compute();
-    auto serialPrimes = computePrimesSerially(1000);
-    bool doMatch = true;
-    for (size_t i = 0; i < serialPrimes.size(); i++) {
-      doMatch = doMatch && parallelPrimes.isPrime(i) == (bool) serialPrimes[i];
-    }
-    test::ok(doMatch, "the results agree");
+    test::describe("serial and parallel both have the same values", [&]() {
+      ParallelPrimes parallelPrimes(1000);
+      parallelPrimes.compute();
+      auto serialPrimes = computePrimesSerially(1000);
+      bool doMatch = true;
+      for (size_t i = 0; i < serialPrimes.size(); i++) {
+        doMatch = doMatch && parallelPrimes.isPrime(i) == (bool) serialPrimes[i];
+      }
+      test::ok(doMatch, "the results agree");
+    });
   });
 
   test::suite("features::threads", []() {

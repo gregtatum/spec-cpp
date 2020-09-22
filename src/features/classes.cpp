@@ -42,6 +42,12 @@ public:
 int NestedOuterClass::mStaticValue = 7;
 int NestedOuterClass::shadowedValue = 2;
 
+class DefaultInitializer {
+  public:
+    int mValue = 5;
+    std::string mString { "This works too." };
+};
+
 void run_tests() {
   test::suite("features::classes", []() {
     test::describe("nested classes", []() {
@@ -51,6 +57,12 @@ void run_tests() {
       test::equal(inner.getOuterStaticValue(), 7, "Can create a NestedInnerClass, and access a static variable.");
       test::equal(inner.getRootShadowedValue(), 1, "Can create a NestedInnerClass, and access a static variable.");
       test::equal(inner.getOuterShadowedValue(), 2, "Can create a NestedInnerClass, and access a static variable.");
+    });
+
+    test::describe("default initialize in-class", []() {
+      DefaultInitializer obj;
+      test::equal(obj.mValue, 5, "It can default initialize.");
+      test::equal(obj.mString, std::string { "This works too." }, "It creates a string");
     });
   });
 }
