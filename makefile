@@ -2,9 +2,9 @@ CC := clang++
 BIN_DIR := .
 BUILD_DIR := build
 SRC_EXT := cpp
-CFLAGS := -Wall -Werror -std=c++1y
+CFLAGS := -Wall -Werror -std=c++2a
 LIB :=
-INCLUDES := 
+INCLUDES :=
 
 SRC_DIR := src
 BUILD_DIR := $(BUILD_DIR)
