@@ -11,8 +11,8 @@ make test TEST=features::pointers
 The build process assumes that `clang++` is on the path with the ability to use the std library `c++1y`.
 
 ## Test output
-```
 
+```
 features::classes
 
   nested classes
@@ -20,6 +20,9 @@ features::classes
     ✔ Can create a NestedInnerClass, and access a static variable.
     ✔ Can create a NestedInnerClass, and access a static variable.
     ✔ Can create a NestedInnerClass, and access a static variable.
+  default initialize in-class
+    ✔ It can default initialize.
+    ✔ It creates a string
 
 features::arrays
 
@@ -68,6 +71,14 @@ features::arrays
     ✔ The third element was not modified
   Passing arrays is mainly type checking by the compiler, but then it copies the memory address of the array to the callee's arguments.
     ✔ The memory values are the same.
+  array sizeof() and passing arrays to functions
+    ✔ The size of the first member is that of an int
+    ✔ The same is true when looking at as a pointer
+    ✔ The size of the array element is only accessible on the current stack
+    ✔ Variable lengths can be created, but they are only stored on the current stack
+    ✔ When passing to a function, the stack-allocated array degrades to a pointer.
+    ✔ This also happens even when the size of the array in the arguments is explicit, like array[6]
+    ✔ Size arguments are a lie
 
 features::lvalueReference
 
@@ -106,6 +117,16 @@ features::lvalueReference
     ✔ Setting the intHolder in a different lexical scope is fine, as the value is copied.
     ✔ We can't assign a reference to a value in a exterior lexical scope block
 
+features::misc
+
+  std::string
+    ✔ String comparison
+    ✔ String view comparison
+  constexpr
+    ✔ The area is computed at compile time.
+    ✔ The area is computed at run time.
+    ✔ The area can be re-computed on changing member values
+
 features::pointers
 
   stack values
@@ -140,6 +161,12 @@ features::rvalueReference
   rvalue references can be passed to functions
     ✔ The rvalue reference function added one.
 
+features::copymove
+
+  Copyable
+  MoveOnly
+  DisableCopyMove
+
 features::smartPointers
 
   Create a unique_ptr
@@ -168,6 +195,13 @@ features::smartPointers
     ✔ The weak pointer is expired
     ✔ The lock and original value are out of scope, the object was deleted
     ✔ The weak pointer is expired
+
+features::primes
+
+  timing in serial
+    ℹ It took 38 microseconds to compute 1000 primes in serial
+  timing in parallel
+    ℹ It took 695 microseconds to compute 1000 primes using concurrent writers
 
 features::threads
 
@@ -222,6 +256,33 @@ features::vector
     ✔ Can access the underlying data
     ✔ Can access the underlying data
     ✔ Can access the underlying data
+  std::vector only copies data, it does not modify it
+    ✔ It matches the original, not the modified
+  std::vector can be passed as a C-style array
+24    ✔
+  std::vector by default deep-clones in structs
+    ✔ deux.a matches
+    ✔ deux.b matches
+    ✔ trois.a matches
+    ✔ trois.b matches
+    ✔ deux.a matches
+    ✔ deux.b matches
+    ✔ trois.a matches
+    ✔ trois.b matches
+  std::span with std::vector
+    ✔ vector matches
+    ✔ span matches
+    ✔ vector changed
+    ✔ the span changed too
+
+rusty::box
+
+  Box()
+    ✔ Can create a boxed int
+  Box destructor called for the pointer
+    ✔ The destructor for the box was called
+  Can convert to a raw pointer
+    ✔ Can turn into a normal pointer.
 
 rusty::option
 
@@ -327,12 +388,6 @@ mfbt::TestMaybe
 
 memory::allocator
 
-  calling sbrk
-    ✔ It returns a memory address
-  basic allocation
-    ✔ It can allocate 5 bytes
-  allocation failures
-    ✔ It will fail when given values it can't work with.
   A basic allocation
     ✔ No bytes allocated
     ✔ No bytes allocated
@@ -352,13 +407,16 @@ memory::allocator
   Freeing all allocations
     ✔ Some bytes have been allocated.
     ✔ Freeing the allocations results in no bytes.
-  Setting values at allocations
+  Re-using space when freeing up the memory
     ✔ a is equal to 11
     ✔ b is equal to 22
     ✔ c is equal to 33
     ✔ a2 is equal to 44
     ✔ b2 is equal to 55
     ✔ c2 is equal to 66
+    ✔ a1 is equal to 44
+    ✔ b1 is equal to 55
+    ✔ c1 is equal to 66
   Values allocated get aligned to 8 bytes.
     ✔ The int is less than 8 bytes
     ✔ The allocation block is aligned
@@ -426,4 +484,4 @@ memory::stack
     ✔ Array 'c' matches when looking it up
 
  All tests passed!
-```
+ ```
