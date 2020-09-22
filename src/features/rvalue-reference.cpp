@@ -60,7 +60,7 @@ void run_tests() {
     test::describe("MoveOnly", []() {
       MoveOnly a{};
 
-      // "a" cannot be moved.
+      // "a" cannot be copied.
       // MoveOnly b{a};
 
       // clang-format off
@@ -89,7 +89,7 @@ void run_tests() {
     test::describe("DisableCopyMove", []() {
       DisableCopyMove a{};
 
-      // This is invalid:
+      // A cannot be copied.
       // DisableCopyMove b{a};
 
       // clang-format off
@@ -101,7 +101,7 @@ void run_tests() {
       //       ^
       // clang-format on
 
-      // This also doesn't work, with the same error as above.
+      // A cannot be moved, either. The same compiler error is generated.
       // DisableCopyMove c{std::move(a)};
     });
   });
