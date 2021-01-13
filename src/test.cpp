@@ -30,6 +30,10 @@ void ok(bool value, const std::string &message) {
   }
 }
 
+void info(const std::string &message) {
+  std::cout << GREEN << "    ✔ " << RESET << WHITE << message << RESET << "\n";
+}
+
 void run_tests() {
   test::suite("src::test", []() {
     test::describe("Assertions", []() {

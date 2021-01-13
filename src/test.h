@@ -13,6 +13,7 @@ static const std::string RESET = "\033[0m";
 void suite(const std::string &, std::function<void()>);
 void describe(const std::string &, std::function<void()>);
 void ok(bool, const std::string &);
+void info(const std::string &);
 void run_tests();
 template <typename T> void ignore(T value){};
 template <typename T> void ignoreRef(T &value){};
