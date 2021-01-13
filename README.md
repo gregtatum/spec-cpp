@@ -14,7 +14,7 @@ ICU4C was added as a library, and it must be added to `/usr/local`. This directo
 
 ```
 git clone git@github.com:unicode-org/icu.git
-cd icu4c/source
+cd icu/icu4c/source
 ./runConfigureICU MacOSX
 ```
 
