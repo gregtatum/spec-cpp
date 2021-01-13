@@ -1,9 +1,12 @@
+include makefile-icu.mk
+
 CC := clang++
 BIN_DIR := .
 BUILD_DIR := build
 SRC_EXT := cpp
-CFLAGS := -Wall -Werror -std=c++2a
-LIB :=
+DEBUG := -g -O0
+CFLAGS := -Wall -Werror -std=c++2a $(DEBUG)
+LIB := $(ICULIBS)
 INCLUDES :=
 
 SRC_DIR := src
@@ -32,6 +35,11 @@ test:
 	@echo "Building then running tests"
 	@clear
 	@make && ./main
+
+test-debug:
+	@echo "Building then running tests"
+	@clear
+	@make && lldb ./main
 
 readme:
 	@echo "Building the README.md"

@@ -10,6 +10,14 @@ make test TEST=features::pointers
 
 The build process assumes that `clang++` is on the path with the ability to use the std library `c++1y`.
 
+ICU4C was added as a library, and it must be added to `/usr/local`. This directory is specified in `makefile-icu.mk`. To install the ICU library on macOS:
+
+```
+git clone git@github.com:unicode-org/icu.git
+cd icu4c/source
+./runConfigureICU MacOSX
+```
+
 ## Test output
 
 ```
@@ -80,6 +88,12 @@ features::arrays
     ✔ This also happens even when the size of the array in the arguments is explicit, like array[6]
     ✔ Size arguments are a lie
 
+features::icu
+
+  basic usage
+    ✔ A pattern can be generated.
+    ✔ The date can be formatted
+
 features::lvalueReference
 
   lvalue references
@@ -126,6 +140,10 @@ features::misc
     ✔ The area is computed at compile time.
     ✔ The area is computed at run time.
     ✔ The area can be re-computed on changing member values
+  using namespace
+    ✔ 'using' follows normal scoping rules
+    ✔ Namespaces can be used individually to simplify namespaces
+    ✔ 'using' is bound by lexical scopes
 
 features::pointers
 
@@ -166,6 +184,8 @@ features::copymove
   Copyable
   MoveOnly
   DisableCopyMove
+  Unspecified
+  MoveOnlyMember
 
 features::smartPointers
 
@@ -199,9 +219,9 @@ features::smartPointers
 features::primes
 
   timing in serial
-    ℹ It took 38 microseconds to compute 1000 primes in serial
+    ℹ It took 32 microseconds to compute 1000 primes in serial
   timing in parallel
-    ℹ It took 695 microseconds to compute 1000 primes using concurrent writers
+    ℹ It took 630 microseconds to compute 1000 primes using concurrent writers
 
 features::threads
 
