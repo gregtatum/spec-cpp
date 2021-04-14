@@ -1,6 +1,7 @@
 #include "../includes/mfbt/RefPtr.h"
 #include "features/arrays.h"
 #include "features/classes.h"
+#include "features/icu-capi.h"
 #include "features/icu.h"
 #include "features/lvalue-reference.h"
 #include "features/misc.h"
@@ -23,6 +24,7 @@ int main() {
   features::classes::run_tests();
   features::arrays::run_tests();
   features::icu::run_tests();
+  features::icu_capi::run_tests();
   features::lvalueReference::run_tests();
   features::misc::run_tests();
   features::pointers::run_tests();
