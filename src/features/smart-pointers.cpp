@@ -1,34 +1,28 @@
 #include "../test.h"
-#include "smart-pointers.h"
 #include <iostream>
 
 namespace features {
 namespace smartPointers {
 
-void addOneByMutation(int* value) {
-  *value = *value + 1;
-}
+void addOneByMutation(int *value) { *value = *value + 1; }
 
-int addOneByReturns(const int* value) {
+int addOneByReturns(const int *value) {
   // Uncommenting this generates a compiler error, as the int* is const.
   // *value = *value + 1;;
   return *value + 1;
 }
 
 class Object {
-  bool& mIsDeleted;
+  bool &mIsDeleted;
 
-  public:
-    explicit Object(bool&);
-    ~Object();
-
+public:
+  explicit Object(bool &);
+  ~Object();
 };
 
-Object::Object(bool& aIsDeleted): mIsDeleted(aIsDeleted) {}
+Object::Object(bool &aIsDeleted) : mIsDeleted(aIsDeleted) {}
 
-Object::~Object() {
-  mIsDeleted = true;
-}
+Object::~Object() { mIsDeleted = true; }
 
 void run_tests() {
   test::suite("features::smartPointers", []() {
@@ -39,7 +33,8 @@ void run_tests() {
         test::equal(isDeleted, false, "Can create a smart pointer");
         // The value is deleted here.
       }
-      test::equal(isDeleted, true, "After leaving it's scope, the reference is removed.");
+      test::equal(isDeleted, true,
+                  "After leaving it's scope, the reference is removed.");
     });
 
     test::describe("Delete it before the end of the scope", []() {
@@ -47,12 +42,13 @@ void run_tests() {
       std::unique_ptr<Object> obj(new Object(isDeleted));
       test::equal(isDeleted, false, "Can create a smart pointer");
       obj.reset();
-      test::equal(isDeleted, true, "Reseting deletes the object at the reference.");
+      test::equal(isDeleted, true,
+                  "Reseting deletes the object at the reference.");
     });
 
     test::describe("Release the ownership of the object", []() {
       bool isDeleted = false;
-      Object* checker;
+      Object *checker;
       {
         std::unique_ptr<Object> obj(new Object(isDeleted));
         // Save a NEW raw pointer to the object;
@@ -75,11 +71,16 @@ void run_tests() {
         {
           std::shared_ptr<Object> obj2(new Object(isDeleted));
           obj1 = obj2;
-          test::equal(isDeleted, false, "A shared pointer is created, and shared with the outer scope");
+          test::equal(
+              isDeleted, false,
+              "A shared pointer is created, and shared with the outer scope");
         }
-        test::equal(isDeleted, false, "The pointer is still shared, so the underlying object still exists.");
+        test::equal(isDeleted, false,
+                    "The pointer is still shared, so the underlying object "
+                    "still exists.");
       }
-      test::equal(isDeleted, true, "After leaving both scope, the object is destructed");
+      test::equal(isDeleted, true,
+                  "After leaving both scope, the object is destructed");
     });
 
     test::describe("Create a weak_ptr", []() {
@@ -88,10 +89,14 @@ void run_tests() {
       {
         std::shared_ptr<Object> obj(new Object(isDeleted));
         weakObj = obj;
-        test::equal(isDeleted, false, "A shared pointer is created, and shared with the outer scope");
-        test::equal(weakObj.expired(), false, "The weak pointer is not expired");
+        test::equal(
+            isDeleted, false,
+            "A shared pointer is created, and shared with the outer scope");
+        test::equal(weakObj.expired(), false,
+                    "The weak pointer is not expired");
       }
-      test::equal(isDeleted, true, "The pointer should be deleted, as it was only weakly held");
+      test::equal(isDeleted, true,
+                  "The pointer should be deleted, as it was only weakly held");
       test::equal(weakObj.expired(), true, "The weak pointer is expired");
     });
 
@@ -103,19 +108,25 @@ void run_tests() {
         {
           std::shared_ptr<Object> obj(new Object(isDeleted));
           weakObj = obj;
-          test::equal(isDeleted, false, "A shared pointer is created, and shared with the outer scope");
-          test::equal(weakObj.expired(), false, "The weak pointer is not expired");
+          test::equal(
+              isDeleted, false,
+              "A shared pointer is created, and shared with the outer scope");
+          test::equal(weakObj.expired(), false,
+                      "The weak pointer is not expired");
           lockObj = weakObj.lock();
         }
-        test::equal(isDeleted, false, "The pointer is still alive, because the weak ptr locked it");
+        test::equal(
+            isDeleted, false,
+            "The pointer is still alive, because the weak ptr locked it");
         test::equal(weakObj.expired(), false, "The weak pointer is expired");
       }
-      test::equal(isDeleted, true, "The lock and original value are out of scope, the object was deleted");
+      test::equal(isDeleted, true,
+                  "The lock and original value are out of scope, the object "
+                  "was deleted");
       test::equal(weakObj.expired(), true, "The weak pointer is expired");
     });
-
   });
 }
 
-} // smartPointers
-} // features
+} // namespace smartPointers
+} // namespace features

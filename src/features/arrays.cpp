@@ -1,4 +1,3 @@
-#include "arrays.h"
 #include "../test.h"
 #include <iostream>
 

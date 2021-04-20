@@ -1,15 +1,4 @@
 #include "../includes/mfbt/RefPtr.h"
-#include "features/arrays.h"
-#include "features/classes.h"
-#include "features/icu-capi.h"
-#include "features/icu.h"
-#include "features/lvalue-reference.h"
-#include "features/misc.h"
-#include "features/pointers.h"
-#include "features/rvalue-reference.h"
-#include "features/smart-pointers.h"
-#include "features/threads.h"
-#include "features/vector.h"
 #include "memory/Allocator.h"
 #include "memory/stack.h"
 #include "mfbt/TestMaybe.h"
@@ -21,9 +10,25 @@
 #include "test.h"
 #include <iostream>
 
+// clang-format off
+namespace features {
+  namespace arrays          { void run_tests(); }
+  namespace classes         { void run_tests(); }
+  namespace icu             { void run_tests(); }
+  namespace icu_capi        { void run_tests(); }
+  namespace lvalueReference { void run_tests(); }
+  namespace misc            { void run_tests(); }
+  namespace pointers        { void run_tests(); }
+  namespace rvalueReference { void run_tests(); }
+  namespace smartPointers   { void run_tests(); }
+  namespace threads         { void run_tests(); }
+  namespace vector          { void run_tests(); }
+}
+// clang-format on
+
 int main() {
-  features::classes::run_tests();
   features::arrays::run_tests();
+  features::classes::run_tests();
   features::icu::run_tests();
   features::icu_capi::run_tests();
   features::lvalueReference::run_tests();
@@ -33,13 +38,17 @@ int main() {
   features::smartPointers::run_tests();
   features::threads::run_tests();
   features::vector::run_tests();
+
   rusty::box::run_tests();
   rusty::option::run_tests();
   rusty::vec::run_tests();
+
   test::run_tests();
+
   mfbt::TestMaybe::run_tests();
   mfbt::TestRefPtr::run_tests();
   mfbt::TestResult::run_tests();
+
   memory::allocator::run_tests();
 
   // These should not stop execution of the rest of the tests, as they may rely
