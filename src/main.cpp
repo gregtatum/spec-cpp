@@ -14,6 +14,7 @@
 #include "memory/stack.h"
 #include "mfbt/TestMaybe.h"
 #include "mfbt/TestRefPtr.h"
+#include "mfbt/TestResult.h"
 #include "rusty/box.h"
 #include "rusty/option.h"
 #include "rusty/vec.h"
@@ -36,8 +37,9 @@ int main() {
   rusty::option::run_tests();
   rusty::vec::run_tests();
   test::run_tests();
-  mfbt::TestRefPtr::run_tests();
   mfbt::TestMaybe::run_tests();
+  mfbt::TestRefPtr::run_tests();
+  mfbt::TestResult::run_tests();
   memory::allocator::run_tests();
 
   // These should not stop execution of the rest of the tests, as they may rely

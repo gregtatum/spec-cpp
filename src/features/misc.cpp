@@ -56,6 +56,66 @@ void run_tests() {
       test::info("'using' is bound by lexical scopes");
       COMPILER_ERROR(string c{""});
     });
+
+    test::describe("lambda basic", []() {
+      auto fn = []() { return 5; };
+      test::equal(fn(), 5, "Lambdas can be defined inline");
+    });
+
+    test::describe("lambdas can take arguments", []() {
+      auto addFive = [](int a) { return a + 5; };
+      test::equal(addFive(3), 8, "3+5=8");
+    });
+
+    test::describe("lambdas can explicitly capture values", []() {
+      int captureValue = 1;
+      auto addFive = [captureValue](int a) { return a + 5 + captureValue; };
+      test::equal(addFive(3), 9, "3+5+1=9");
+    });
+
+    test::describe("lambdas capture by copying a value", []() {
+      int captureValue = 1;
+      auto addFive = [captureValue](int a) { return a + 5 + captureValue; };
+      captureValue++;
+      test::equal(addFive(3), 9, "3+5+1=9");
+    });
+
+    test::describe("lambdas can also capture by reference", []() {
+      int captureValue = 1;
+      auto addFive = [&captureValue](int a) { return a + 5 + captureValue; };
+      captureValue++;
+      test::equal(addFive(3), 10, "3+5+2=10");
+    });
+
+    test::describe("lambdas can implictly capture values", []() {
+      int captureValue = 1;
+      auto addFive = [=](int a) { return a + 5 + captureValue; };
+      test::equal(addFive(3), 9, "3+5+1=9");
+    });
+
+    test::describe("lambdas can implictly capture by copy", []() {
+      int captureValue = 1;
+      auto addFive = [=](int a) { return a + 5 + captureValue; };
+      captureValue++;
+      test::equal(addFive(3), 9, "3+5+1=9");
+    });
+
+    test::describe("lambdas can implictly capture by reference", []() {
+      int captureValue = 1;
+      auto addFive = [&](int a) { return a + 5 + captureValue; };
+      captureValue++;
+      test::equal(addFive(3), 10, "3+5+2=10");
+    });
+
+    test::describe("capture defaults and explicit copy captures", []() {
+      int a = 1;
+      int b = 10;
+      auto add = [&, b]() { return a + b; };
+      test::equal(add(), 11, "It adds the original values.");
+      a++;
+      b++;
+      test::equal(add(), 12, "b is explicitly copied, while a is by reference");
+    });
   });
 }
 
