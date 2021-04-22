@@ -10,4 +10,12 @@ make test TEST=features::pointers
 
 The build process assumes that `clang++` is on the path with the ability to use the std library `c++1y`.
 
+ICU4C was added as a library, and it must be added to `/usr/local`. This directory is specified in `makefile-icu.mk`. To install the ICU library on macOS:
+
+```
+git clone git@github.com:unicode-org/icu.git
+cd icu/icu4c/source
+./runConfigureICU MacOSX
+```
+
 ## Test output

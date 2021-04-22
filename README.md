@@ -19,18 +19,7 @@ cd icu/icu4c/source
 ```
 
 ## Test output
-
 ```
-features::classes
-
-  nested classes
-    ✔ Can create a NestedOuterClass on the stack.
-    ✔ Can create a NestedInnerClass, and access a static variable.
-    ✔ Can create a NestedInnerClass, and access a static variable.
-    ✔ Can create a NestedInnerClass, and access a static variable.
-  default initialize in-class
-    ✔ It can default initialize.
-    ✔ It creates a string
 
 features::arrays
 
@@ -88,11 +77,78 @@ features::arrays
     ✔ This also happens even when the size of the array in the arguments is explicit, like array[6]
     ✔ Size arguments are a lie
 
+features::classes
+
+  nested classes
+    ✔ Can create a NestedOuterClass on the stack.
+    ✔ Can create a NestedInnerClass, and access a static variable.
+    ✔ Can create a NestedInnerClass, and access a static variable.
+    ✔ Can create a NestedInnerClass, and access a static variable.
+  default initialize in-class
+    ✔ It can default initialize.
+    ✔ It creates a string
+
+features::const_test
+
+  object of const type, 'const-qualified type'
+    ✔ The numbers match
+  const specifier can be before and after the type
+    ✔ const before
+    ✔ const after
+  structs of const type do not have interior mutability
+    ✔ The numbers match
+  const-ness of class definitions
+    ✔ GetNumber requires const in the function declaration
+  const struct members
+  const structs with mutable members
+    ✔ The numbers match
+  const pointers cannot have their contents mutated
+  *const can be mutated but not re-assigned
+  Consts can be combined: const TestStruct *const
+  const as function arguments
+    ✔ The function can add one.
+  const can be cast away
+    ✔ 
+
 features::icu
 
   basic usage
     ✔ A pattern can be generated.
     ✔ The date can be formatted
+  time zone testing
+    ✔ A pattern can be generated.
+    ✔ The date can be formatted
+  combine date and time when formatting dates
+    ✔ A pattern can be generated.
+    ✔ The date can be formatted
+  number format
+    ✔ CurrencyUnit had no errors.
+    ✔ FormatInt had no errors.
+    ✔ ToString had no errors.
+    ✔ The number can be formatted.
+  empty string skeleton
+    ✔ A pattern can be generated.
+    ✔ The date can be formatted
+  fixed decimal format approximation
+    ✔ Formatting had no errors.
+    ✔ The number can be formatted.
+  fixed decimal format approximation
+    ✔ Formatting had no errors.
+    ✔ The number can be formatted.
+  fixed decimal format approximation
+    ✔ Formatting had no errors.
+    ✔ The number can be formatted.
+
+features::icu_capi
+
+  udat_format with the C api
+    ✔ Malloc succeeded.
+    ✔ The strings are equal
+  udat_format with the C api, truncated
+    ✔ Able to create a date format object.
+    ✔ The buffer overflowed.
+    ✔ Formatted the string correctly into the buffer.
+    ✔ The strings are equal
 
 features::lvalueReference
 
@@ -144,6 +200,25 @@ features::misc
     ✔ 'using' follows normal scoping rules
     ✔ Namespaces can be used individually to simplify namespaces
     ✔ 'using' is bound by lexical scopes
+  lambda basic
+    ✔ Lambdas can be defined inline
+  lambdas can take arguments
+    ✔ 3+5=8
+  lambdas can explicitly capture values
+    ✔ 3+5+1=9
+  lambdas capture by copying a value
+    ✔ 3+5+1=9
+  lambdas can also capture by reference
+    ✔ 3+5+2=10
+  lambdas can implictly capture values
+    ✔ 3+5+1=9
+  lambdas can implictly capture by copy
+    ✔ 3+5+1=9
+  lambdas can implictly capture by reference
+    ✔ 3+5+2=10
+  capture defaults and explicit copy captures
+    ✔ It adds the original values.
+    ✔ b is explicitly copied, while a is by reference
 
 features::pointers
 
@@ -219,9 +294,9 @@ features::smartPointers
 features::primes
 
   timing in serial
-    ℹ It took 32 microseconds to compute 1000 primes in serial
+    ℹ It took 31 microseconds to compute 1000 primes in serial
   timing in parallel
-    ℹ It took 630 microseconds to compute 1000 primes using concurrent writers
+    ℹ It took 567 microseconds to compute 1000 primes using concurrent writers
 
 features::threads
 
@@ -279,7 +354,7 @@ features::vector
   std::vector only copies data, it does not modify it
     ✔ It matches the original, not the modified
   std::vector can be passed as a C-style array
-24    ✔
+24    ✔ 
   std::vector by default deep-clones in structs
     ✔ deux.a matches
     ✔ deux.b matches
@@ -342,6 +417,25 @@ src::test
     ✔ Does not throw
     ✔ Equality does work
 
+mfbt::TestMaybe
+
+  mozilla::Some
+    ✔ There is some value
+    ✔ There is not nothing
+    ✔ There is a value
+    ✔ There is a value
+    ✔ Can access via pointer
+    ✔ Can access via reference
+  mozilla::Nothing
+    ✔ There is no value
+    ✔ This is nothing
+    ✔ There is not value, so use default
+  Can emplace a value
+    ✔ There is no value
+    ✔ There is now an emplaced value
+  Can emplace a value with interesting constructors
+    ✔ There is now an emplaced value
+
 mfbt::TestRefPtr
 
   RefPtr works just like a unique_ptr with one reference
@@ -387,24 +481,12 @@ mfbt::TestRefPtr
     ✔ The RefPtr was still not killed, as it is being retained by the HasStaticObj
     ✔ The reference had to be manually deleted
 
-mfbt::TestMaybe
+mfbt::TestResult
 
-  mozilla::Some
-    ✔ There is some value
-    ✔ There is not nothing
-    ✔ There is a value
-    ✔ There is a value
-    ✔ Can access via pointer
-    ✔ Can access via reference
-  mozilla::Nothing
-    ✔ There is no value
-    ✔ This is nothing
-    ✔ There is not value, so use default
-  Can emplace a value
-    ✔ There is no value
-    ✔ There is now an emplaced value
-  Can emplace a value with interesting constructors
-    ✔ There is now an emplaced value
+  Vectors are initialized to 0
+    ✔ Nothing is in the vector yet.
+  mozilla::Result
+    ✔ Types match
 
 memory::allocator
 
@@ -504,4 +586,4 @@ memory::stack
     ✔ Array 'c' matches when looking it up
 
  All tests passed!
- ```
+```
