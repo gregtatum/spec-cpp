@@ -281,6 +281,141 @@ void run_tests() {
       //    //                ^^^^^^^^
       //  };
     });
+
+    test::describe("Functions call virtual methods on references to base class", []() {
+      class Object {
+      public:
+        virtual double getWidth() { return 0.0; }
+      };
+
+      class Box final : public Object {
+      public:
+        double getWidth() override { return 3; }
+      };
+
+      struct Fns {
+        static double doDynamicDispatch(Object &obj) { return obj.getWidth(); }
+      };
+
+      Object obj;
+      Box box;
+      test::equal(Fns::doDynamicDispatch(obj), 0.0, "Fn will call the base function.");
+      test::equal(Fns::doDynamicDispatch(box), 3.0, "Fn will call the class function.");
+    });
+
+    test::describe("Functions call virtual methods on pointers to base class", []() {
+      class Object {
+      public:
+        virtual double getWidth() { return 0.0; }
+      };
+
+      class Box final : public Object {
+      public:
+        double getWidth() override { return 3.0; }
+      };
+
+      struct Fns {
+        static double doDynamicDispatch(Object *obj) { return obj->getWidth(); }
+      };
+
+      Object obj;
+      Box box;
+      test::equal(Fns::doDynamicDispatch(&obj), 0.0, "Fn will call the base function.");
+      test::equal(Fns::doDynamicDispatch(&box), 3.0, "Fn will call the class function.");
+    });
+
+    test::describe("pointers are just pointers with dynamic dispatch", []() {
+      class Object {
+      public:
+        virtual double getWidth() { return 0.0; }
+      };
+
+      class Box final : public Object {
+      public:
+        double getWidth() override { return 3.0; }
+      };
+
+      struct Fns {
+        static size_t doDynamicDispatch(Object *obj) { return sizeof(obj); }
+        static size_t doStaticDispatch(Box *obj) { return sizeof(obj); }
+      };
+
+      Object obj;
+      Box box;
+      test::equal(Fns::doDynamicDispatch(&obj), sizeof(uintptr_t), "It's just a pointer");
+      test::equal(Fns::doDynamicDispatch(&box), sizeof(uintptr_t), "It's just a pointer");
+      test::equal(Fns::doStaticDispatch(&box), sizeof(uintptr_t), "It's just a pointer");
+    });
+
+    test::describe("dynamic dispatch affects size with a vpointer member", []() {
+      class VectorWrap {
+        Vector position;
+      };
+
+      class BaseObject {
+        Vector position;
+
+      public:
+        virtual double getWidth() { return 0.0; }
+      };
+
+      class Box final : public BaseObject {
+      public:
+        double getWidth() override { return 3.0; }
+      };
+
+      class ObjectInherited final : public BaseObject {};
+
+      size_t vectorSize = sizeof(Vector);
+      size_t vpointerSize = sizeof(uintptr_t);
+      test::equal(sizeof(VectorWrap), vectorSize, "VectorWrap size");
+      test::equal(sizeof(BaseObject), vectorSize + vpointerSize,
+                  "BaseObject contains a vpointer");
+      test::equal(sizeof(Box), vectorSize + vpointerSize, "Box contains a vpointer");
+      test::equal(sizeof(ObjectInherited), vectorSize + vpointerSize,
+                  "ObjectInherited contains a vpointer");
+    });
+
+    test::describe("⚠️ deduce the vpointers layout with clang++", []() {
+      class BaseObject {
+        Vector position;
+
+      public:
+        virtual double getWidth() { return 0.0; }
+      };
+
+      class Box final : public BaseObject {
+      public:
+        double getWidth() override { return 3.0; }
+      };
+
+      class ObjectInherited final : public BaseObject {};
+
+      BaseObject baseObject1;
+      BaseObject baseObject2;
+      Box box1;
+      Box box2;
+      ObjectInherited objInherited1;
+      ObjectInherited objInherited2;
+
+      uintptr_t ptrBaseObject1 = *reinterpret_cast<uintptr_t *>(&baseObject1);
+      uintptr_t ptrBaseObject2 = *reinterpret_cast<uintptr_t *>(&baseObject2);
+      uintptr_t ptrBox1 = *reinterpret_cast<uintptr_t *>(&box1);
+      uintptr_t ptrBox2 = *reinterpret_cast<uintptr_t *>(&box2);
+      uintptr_t ptrObjInherited1 = *reinterpret_cast<uintptr_t *>(&objInherited1);
+      uintptr_t ptrObjInherited2 = *reinterpret_cast<uintptr_t *>(&objInherited2);
+
+      test::equal(ptrBaseObject1, ptrBaseObject2, "BaseObject pointers are the same");
+      test::equal(ptrBox1, ptrBox2, "Box pointers are the same");
+      test::equal(ptrObjInherited1, ptrObjInherited2,
+                  "ObjectInherited pointers are the same");
+
+      test::ok(ptrBaseObject1 != ptrBox1, "Box has a different vpointer from BaseObject");
+      test::ok(ptrBaseObject1 != ptrObjInherited1,
+               "ObjectInherited shares the same vpointer as BaseObject");
+      test::ok(ptrBox1 != ptrObjInherited1,
+               "The two inherited classes have different vpointers");
+    });
   });
 }
 
