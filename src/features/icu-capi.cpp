@@ -14,8 +14,7 @@ namespace icu_capi {
 void icu_tests() {}
 
 std::string toString(UChar *u16) {
-  return std::wstring_convert<std::codecvt_utf8_utf16<UChar>, UChar>{}.to_bytes(
-      u16);
+  return std::wstring_convert<std::codecvt_utf8_utf16<UChar>, UChar>{}.to_bytes(u16);
 }
 
 void run_tests() {
@@ -41,8 +40,8 @@ void run_tests() {
       formattedString = (UChar *)malloc(sizeof(UChar) * (stringLength + 1));
       test::ok(formattedString, "Malloc succeeded.");
 
-      udat_format(dateFormat, unixEpoch, formattedString, stringLength + 1,
-                  NULL, &status);
+      udat_format(dateFormat, unixEpoch, formattedString, stringLength + 1, NULL,
+                  &status);
 
       if (U_FAILURE(status)) {
         test::ok(false, "Unable to run udat_format.");
@@ -68,8 +67,7 @@ void run_tests() {
       test::equal(status, U_ZERO_ERROR, "Able to create a date format object.");
 
       // Get the size of the string's buffer.
-      int32_t size =
-          udat_format(dateFormat, unixEpoch, nullptr, 0, NULL, &status);
+      int32_t size = udat_format(dateFormat, unixEpoch, nullptr, 0, NULL, &status);
 
       size++; // Plus the null terminator character.
       test::equal(status, U_BUFFER_OVERFLOW_ERROR, "The buffer overflowed.");
@@ -78,8 +76,7 @@ void run_tests() {
       // Write the formatted string into the buffer.
       std::basic_string<char16_t> formattedString;
       formattedString.resize(size);
-      udat_format(dateFormat, unixEpoch, formattedString.data(), size, NULL,
-                  &status);
+      udat_format(dateFormat, unixEpoch, formattedString.data(), size, NULL, &status);
 
       test::equal(status, U_ZERO_ERROR,
                   "Formatted the string correctly into the buffer.");
@@ -88,12 +85,6 @@ void run_tests() {
                   "The strings are equal");
 
       udat_close(dateFormat);
-    });
-
-    test::describe("trivial udat_format", []() {
-      UErrorCode status = U_ZERO_ERROR;
-      udat_format(nullptr, 0.0, nullptr, 0, nullptr, &status);
-      test::equal(status, U_ZERO_ERROR, "noop");
     });
   });
 }
