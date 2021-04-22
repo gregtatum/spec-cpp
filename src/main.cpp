@@ -14,6 +14,7 @@
 namespace features {
   namespace arrays          { void run_tests(); }
   namespace classes         { void run_tests(); }
+  namespace const_test      { void run_tests(); }
   namespace icu             { void run_tests(); }
   namespace icu_capi        { void run_tests(); }
   namespace lvalueReference { void run_tests(); }
@@ -29,6 +30,7 @@ namespace features {
 int main() {
   features::arrays::run_tests();
   features::classes::run_tests();
+  features::const_test::run_tests();
   features::icu::run_tests();
   features::icu_capi::run_tests();
   features::lvalueReference::run_tests();
