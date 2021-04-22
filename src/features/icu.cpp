@@ -148,6 +148,37 @@ void run_tests() {
                   "The number can be formatted.");
     });
 
+    test::describe("empty string skeleton", []() {
+      Locale locale("en");
+      UErrorCode status = U_ZERO_ERROR;
+      DateTimePatternGenerator *generator =
+          DateTimePatternGenerator::createInstance(locale, status);
+      if (U_FAILURE(status)) {
+        test::ok(false, "Unable to generate the DateTimePatternGenerator");
+        return;
+      }
+
+      UnicodeString pattern =
+          generator->getBestPattern(UnicodeString(""), status);
+
+      std::string patternStr;
+      pattern.toUTF8String(patternStr);
+
+      test::equal(toString(pattern), std::string(""),
+                  "A pattern can be generated.");
+
+      SimpleDateFormat *formatter =
+          new SimpleDateFormat(pattern, locale, status);
+      GregorianCalendar calendar(2020, 0, 20, 14, 5, status);
+
+      UnicodeString formatted;
+      formatted =
+          formatter->format(calendar.getTime(status), formatted, status);
+
+      test::equal(toString(formatted), std::string(""),
+                  "The date can be formatted");
+    });
+
     test::describe("fixed decimal format approximation", []() {
       UErrorCode status = U_ZERO_ERROR;
 
