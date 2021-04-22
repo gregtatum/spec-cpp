@@ -89,6 +89,12 @@ void run_tests() {
 
       udat_close(dateFormat);
     });
+
+    test::describe("trivial udat_format", []() {
+      UErrorCode status = U_ZERO_ERROR;
+      udat_format(nullptr, 0.0, nullptr, 0, nullptr, &status);
+      test::equal(status, U_ZERO_ERROR, "noop");
+    });
   });
 }
 
