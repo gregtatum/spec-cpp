@@ -46,8 +46,13 @@ readme:
 .PHONY: clean
 .PHONY: test
 
+# -fno-asynchronous-unwind-tables
+#   Disable call frame information injected into ASM
+#   https://stackoverflow.com/questions/2529185/what-are-cfi-directives-in-gnu-assembler-gas-used-for/16007194#16007194
+# -S
+#   Compile to assembly
 make asm/%.asm: asm/%.cpp
-	clang++ -std=c++2a -S -o $@ $<
+	clang++ -std=c++2a -fno-asynchronous-unwind-tables -S -o $@ $<
 	@echo "\nCompiled code:"
 	@echo "==================================================="
 	@cat $@
