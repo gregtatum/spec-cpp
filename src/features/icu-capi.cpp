@@ -29,7 +29,7 @@ void run_tests() {
 
       // Create a formatter.
       UDateFormat *dateFormat =
-          udat_open(UDAT_SHORT, UDAT_NONE, "en", NULL, -1, NULL, -1, &status);
+          udat_open(UDAT_SHORT, UDAT_NONE, "en", nullptr, -1, nullptr, -1, &status);
 
       if (U_FAILURE(status)) {
         test::ok(false, "Unable to open a UDateFormat.");
@@ -40,7 +40,7 @@ void run_tests() {
       formattedString = (UChar *)malloc(sizeof(UChar) * (stringLength + 1));
       test::ok(formattedString, "Malloc succeeded.");
 
-      udat_format(dateFormat, unixEpoch, formattedString, stringLength + 1, NULL,
+      udat_format(dateFormat, unixEpoch, formattedString, stringLength + 1, nullptr,
                   &status);
 
       if (U_FAILURE(status)) {
@@ -62,12 +62,12 @@ void run_tests() {
 
       // Create a formatter.
       UDateFormat *dateFormat =
-          udat_open(UDAT_SHORT, UDAT_NONE, "en", NULL, -1, NULL, -1, &status);
+          udat_open(UDAT_SHORT, UDAT_NONE, "en", nullptr, -1, nullptr, -1, &status);
 
       test::equal(status, U_ZERO_ERROR, "Able to create a date format object.");
 
       // Get the size of the string's buffer.
-      int32_t size = udat_format(dateFormat, unixEpoch, nullptr, 0, NULL, &status);
+      int32_t size = udat_format(dateFormat, unixEpoch, nullptr, 0, nullptr, &status);
 
       size++; // Plus the null terminator character.
       test::equal(status, U_BUFFER_OVERFLOW_ERROR, "The buffer overflowed.");
@@ -76,7 +76,41 @@ void run_tests() {
       // Write the formatted string into the buffer.
       std::basic_string<char16_t> formattedString;
       formattedString.resize(size);
-      udat_format(dateFormat, unixEpoch, formattedString.data(), size, NULL, &status);
+      udat_format(dateFormat, unixEpoch, formattedString.data(), size, nullptr, &status);
+
+      test::equal(status, U_ZERO_ERROR,
+                  "Formatted the string correctly into the buffer.");
+
+      test::equal(toString(formattedString.data()), std::string("11:33 AM"),
+                  "The strings are equal");
+
+      udat_close(dateFormat);
+    });
+
+    test::describe("udat_format with the C api, truncated", []() {
+      // Set up the variable bindings.
+      UErrorCode status = U_ZERO_ERROR;
+      double unixEpoch = 1618431049.0;
+
+      // Create a formatter.
+      UDateFormat *dateFormat =
+          udat_open(UDAT_SHORT, UDAT_NONE, "en", nullptr, -1, nullptr, -1, &status);
+
+      test::equal(status, U_ZERO_ERROR, "Able to create a date format object.");
+
+      // Get the size of the string's buffer.
+      int32_t size = udat_format(dateFormat, unixEpoch, /* UChar* result */ nullptr,
+                                 /* int32_t resultLength */ 0,
+                                 /*UFieldPosition* */ nullptr, &status);
+
+      size++; // Plus the null terminator character.
+      test::equal(status, U_BUFFER_OVERFLOW_ERROR, "The buffer overflowed.");
+      status = U_ZERO_ERROR;
+
+      // Write the formatted string into the buffer.
+      std::basic_string<char16_t> formattedString;
+      formattedString.resize(size);
+      udat_format(dateFormat, unixEpoch, formattedString.data(), size, nullptr, &status);
 
       test::equal(status, U_ZERO_ERROR,
                   "Formatted the string correctly into the buffer.");
