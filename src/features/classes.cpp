@@ -416,6 +416,53 @@ void run_tests() {
       test::ok(ptrBox1 != ptrObjInherited1,
                "The two inherited classes have different vpointers");
     });
+
+    test::describe("Test simple stack destructing behavior", []() {
+      static int constructed;
+      static int destructed;
+      class AutoObj {
+      public:
+        AutoObj() { constructed++; }
+        ~AutoObj() { destructed++; }
+      };
+      {
+        test::equal(constructed, 0, "No constructor yet");
+        test::equal(destructed, 0, "Not destructed");
+        AutoObj a;
+        test::equal(constructed, 1, "Constructed");
+        test::equal(destructed, 0, "Not destructed");
+      }
+      test::equal(constructed, 1, "Constructed");
+      test::equal(destructed, 1, "Destructed");
+    });
+
+    test::describe("Test move machinery and destructors", []() {
+      static int constructed;
+      static int destructed;
+      class AutoObj {
+      public:
+        // Move only
+        AutoObj(AutoObj &&other) = default;
+        AutoObj &operator=(AutoObj &&other) = default;
+
+        AutoObj() { constructed++; }
+        ~AutoObj() { destructed++; }
+
+        static AutoObj *ConstructThenPoint() {
+          AutoObj obj;
+          return new AutoObj(std::move(obj));
+        }
+      };
+
+      test::equal(constructed, 0, "Constructed");
+      test::equal(destructed, 0, "Destructed");
+      AutoObj *obj = AutoObj::ConstructThenPoint();
+      test::equal(constructed, 1, "Constructed");
+      test::equal(destructed, 0, "Destructed");
+      delete obj;
+      test::equal(constructed, 1, "Constructed");
+      test::equal(destructed, 1, "Destructed");
+    });
   });
 }
 
