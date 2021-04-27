@@ -18,4 +18,12 @@ cd icu/icu4c/source
 ./runConfigureICU MacOSX
 ```
 
+## Compiling Assembly Examples
+
+In order to compile assembly examples run:
+
+```
+make asm/move-mechanics.asm
+```
+
 ## Test output

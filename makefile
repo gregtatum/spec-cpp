@@ -45,3 +45,9 @@ readme:
 
 .PHONY: clean
 .PHONY: test
+
+make asm/%.asm: asm/%.cpp
+	clang++ -std=c++2a -S -o $@ $<
+	@echo "\nCompiled code:"
+	@echo "==================================================="
+	@cat $@
