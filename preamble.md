@@ -20,10 +20,10 @@ cd icu/icu4c/source
 
 ## Compiling Assembly Examples
 
-In order to compile assembly examples run:
+In order to study assembly, examples are stored in `/asm`. Run the following code to build an example. To create a new one, use the directory structure `/asm/{test}/main.cpp`. The make command will generate the assembly, and then they can be manually documented.
 
 ```
-make asm/move-mechanics.asm
+./make-asm simple-assignment
 ```
 
 ## Test output

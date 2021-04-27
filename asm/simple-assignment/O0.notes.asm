@@ -1,3 +1,4 @@
+  ; Directives: https://docs.oracle.com/cd/E26502_01/html/E28388/eoiyg.html
 	.section	__TEXT,__text,regular,pure_instructions
 	.build_version macos, 11, 0	sdk_version 11, 1
 	.globl	_main                   ## -- Begin function main

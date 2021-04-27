@@ -2,29 +2,44 @@ https://cs.brown.edu/courses/cs033/docs/guides/x64_cheatsheet.pdf
 
 # Registers
 
-|--------|-------|-------|-------|-------|
-| Bits   | 64    | 32    | 16    | 8     |
-| Bytes  | 8     | 4     | 2     | 1     |
-| Symbol | q     | l     | w     | b     |
-|--------|-------|-------|-------|-------|
-| 0      | %rax  | %eax  | %ax   | %al   | Function return value
-| 1      | %rcx  | %ecx  | %cx   | %cl   |
-| 2      | %rdx  | %edx  | %dx   | %dl   |
-| 3      | %rbx  | %ebx  | %bx   | %bl   | Callee-save registers
-| 4      | %rsi  | %esi  | %si   | %sil  |
-| 5      | %rdi  | %edi  | %di   | %dil  |
-| 6      | %rsp  | %esp  | %sp   | %spl  | Stack pointer
-| 7      | %rbp  | %ebp  | %bp   | %bpl  | Base pointer (Callee-save registers)
-| 8      | %r8   | %r8d  | %r8w  | %r8b  | Call save register
-| 9      | %r9   | %r9d  | %r9w  | %r9b  | Call save register
-| 10     | %r10  | %r10d | %r10w | %r10b | Call save register
-| 11     | %r11  | %r11d | %r11w | %r11b | Call save register
-| 12     | %r12  | %r12d | %r12w | %r12b | Callee-save registers
-| 13     | %r13  | %r13d | %r13w | %r13b | Callee-save registers
-| 13     | %r13  | %r13d | %r13w | %r13b | Callee-save registers
-| 14     | %r14  | %r14d | %r14w | %r14b | Callee-save registers
-| 15     | %r15  | %r15d | %r15w | %r15b | Callee-save registers
-|--------|-------|-------|-------|-------|
+CSR    - Caller save registers. Not necessarily saved across function calls.
+Callee -
+
+|--------|-------|-------|-------|-------|--------|--------|-------|
+| Bits   | 64    | 32    | 16    | 8     |        |        |       |
+| Bytes  | 8     | 4     | 2     | 1     |        |        |       |
+| Symbol | q     | l     | w     | b     | caller | callee | param |
+|--------|-------|-------|-------|-------|--------|--------|-------|
+| 0      | %rax  | %eax  | %ax   | %al   | xxxxxx |        |       | Function return value
+| 1      | %rcx  | %ecx  | %cx   | %cl   | xxxxxx |        | xxxxx |
+| 2      | %rdx  | %edx  | %dx   | %dl   | xxxxxx |        | xxxxx |
+| 3      | %rbx  | %ebx  | %bx   | %bl   |        |        |       |
+| 4      | %rsi  | %esi  | %si   | %sil  | xxxxxx |        | xxxxx |
+| 5      | %rdi  | %edi  | %di   | %dil  | xxxxxx |        | xxxxx |
+| 6      | %rsp  | %esp  | %sp   | %spl  | xxxxxx |        |       | Stack pointer
+| 7      | %rbp  | %ebp  | %bp   | %bpl  |        |        |       | Base pointer
+| 8      | %r8   | %r8d  | %r8w  | %r8b  | xxxxxx |        | xxxxx |
+| 9      | %r9   | %r9d  | %r9w  | %r9b  | xxxxxx |        | xxxxx |
+| 10     | %r10  | %r10d | %r10w | %r10b | xxxxxx |        |       |
+| 11     | %r11  | %r11d | %r11w | %r11b | xxxxxx |        |       |
+| 12     | %r12  | %r12d | %r12w | %r12b |        | xxxxxx |       |
+| 13     | %r13  | %r13d | %r13w | %r13b |        | xxxxxx |       |
+| 13     | %r13  | %r13d | %r13w | %r13b |        | xxxxxx |       |
+| 14     | %r14  | %r14d | %r14w | %r14b |        | xxxxxx |       |
+| 15     | %r15  | %r15d | %r15w | %r15b |        | xxxxxx |       |
+|--------|-------|-------|-------|-------|--------|--------|-------|
+
+# Usage
+
+Caller save registers: (not
+rax
+rcx
+rdx
+rdi
+rsi
+rsp
+r8-r11
+
 
 # Registers 8 byte, 64 bit
 

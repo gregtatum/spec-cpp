@@ -51,8 +51,18 @@ readme:
 #   https://stackoverflow.com/questions/2529185/what-are-cfi-directives-in-gnu-assembler-gas-used-for/16007194#16007194
 # -S
 #   Compile to assembly
-make asm/%.asm: asm/%.cpp
+# -O0
+#   Unoptimized
+make asm/%/O0.asm: asm/%/main.cpp
 	clang++ -std=c++2a -fno-asynchronous-unwind-tables -S -o $@ $<
+	@echo "\nCompiled code:"
+	@echo "==================================================="
+	@cat $@
+
+# -O3
+#   Optimized build, same level as Gecko.
+make asm/%/O3.asm: asm/%/main.cpp
+	clang++ -std=c++2a -O3 -fno-asynchronous-unwind-tables -S -o $@ $<
 	@echo "\nCompiled code:"
 	@echo "==================================================="
 	@cat $@
