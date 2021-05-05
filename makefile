@@ -3,7 +3,7 @@ include makefile-icu.mk
 DEBUG := -g -O0
 CFLAGS := -Wall -Werror -std=c++2a $(DEBUG)
 LIB := $(ICULIBS)
-INCLUDES :=
+INCLUDES := -I includes
 
 SOURCES := $(shell find src -type f -name *.cpp)
 CODE_OBJECTS := $(patsubst src/%,build/%,$(SOURCES:.cpp=.o))
