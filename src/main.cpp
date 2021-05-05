@@ -23,6 +23,7 @@ namespace features {
   namespace rvalueReference { void run_tests(); }
   namespace smartPointers   { void run_tests(); }
   namespace threads         { void run_tests(); }
+  namespace utf8            { void run_tests(); }
   namespace vector          { void run_tests(); }
 }
 // clang-format on
@@ -39,6 +40,7 @@ int main() {
   features::rvalueReference::run_tests();
   features::smartPointers::run_tests();
   features::threads::run_tests();
+  features::utf8::run_tests();
   features::vector::run_tests();
 
   rusty::box::run_tests();
