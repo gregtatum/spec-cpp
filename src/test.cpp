@@ -25,8 +25,7 @@ void ok(bool value, const std::string &message) {
     std::cout << RED << "    𝘅 " << message << RESET << "\n";
     throw std::string(message);
   } else {
-    std::cout << GREEN << "    ✔ " << RESET << WHITE << message << RESET
-              << "\n";
+    std::cout << GREEN << "    ✔ " << RESET << WHITE << message << RESET << "\n";
   }
 }
 
