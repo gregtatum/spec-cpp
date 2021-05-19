@@ -437,8 +437,8 @@ void run_tests() {
     });
 
     test::describe("Test move machinery and destructors", []() {
-      static int constructed;
-      static int destructed;
+      static int constructed = 0;
+      static int destructed = 0;
       class AutoObj {
       public:
         // Move only
@@ -458,10 +458,25 @@ void run_tests() {
       test::equal(destructed, 0, "Destructed");
       AutoObj *obj = AutoObj::ConstructThenPoint();
       test::equal(constructed, 1, "Constructed");
-      test::equal(destructed, 0, "Destructed");
+      test::equal(destructed, 1, "Destructed");
       delete obj;
       test::equal(constructed, 1, "Constructed");
-      test::equal(destructed, 1, "Destructed");
+      test::equal(destructed, 2, "Destructed");
+    });
+
+    test::describe("Uninitialized pointer values", []() {
+      // Why you should initialize pointers to nullptr, just to be safe.
+      class Example {
+      public:
+        void *pointerA = nullptr;
+        void *pointerB;
+      } example;
+
+      test::equal(example.pointerA, static_cast<void *>(nullptr),
+                  "Initialized values are nullptr");
+      test::ok(example.pointerB != static_cast<void *>(nullptr),
+               "(⚠️ very slightly possible to be equal to nullptr) Un-initialized "
+               "values point to random things");
     });
   });
 }
