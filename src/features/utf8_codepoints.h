@@ -1,4 +1,5 @@
 #pragma once
+#include <stdint.h>
 
 // 1 byte
 static const uint32_t C_A = 0x41;

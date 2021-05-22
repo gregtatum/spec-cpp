@@ -11,7 +11,7 @@ CODE_OBJECTS := $(patsubst src/%,build/%,$(SOURCES:.cpp=.o))
 #Compile to objects
 build/%.o: src/%.cpp
 	@mkdir -p $(shell echo $@ | sed -e 's/\/[^\/]*\.o//g')
-	@echo " Compile Code: clang++ $(CFLAGS) $(INCLUDES) -c -o $@ $<"; clang++ $(CFLAGS) $(INCLUDES) -c -o $@ $<
+	clang++ $(CFLAGS) $(INCLUDES) -c -o $@ $<
 
 #Link binary file
 main: $(CODE_OBJECTS)

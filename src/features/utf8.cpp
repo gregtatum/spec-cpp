@@ -270,6 +270,28 @@ void run_tests() {
 
       test::ok(!iter.Next(), "Is nothing");
     });
+
+    test::describe("iterate on arabic", []() {
+      auto string = UTF8::TryCreate("سلام").unwrap();
+      auto iter = string.Iter();
+
+      test::equal(iter.Next(), Some(static_cast<uint32_t>(0x0633)));
+      test::equal(iter.Next(), Some(static_cast<uint32_t>(0x0644)));
+      test::equal(iter.Next(), Some(static_cast<uint32_t>(0x0627)));
+      test::equal(iter.Next(), Some(static_cast<uint32_t>(0x0645)));
+      test::ok(!iter.Next(), "Is nothing");
+    });
+
+    test::describe("iterate on 0xf000 range", []() {
+      auto string = UTF8::TryCreate("ﬀﬁﬂﬃ").unwrap();
+      auto iter = string.Iter();
+
+      test::equal(iter.Next(), Some(static_cast<uint32_t>(0xfb00)));
+      test::equal(iter.Next(), Some(static_cast<uint32_t>(0xfb01)));
+      test::equal(iter.Next(), Some(static_cast<uint32_t>(0xfb02)));
+      test::equal(iter.Next(), Some(static_cast<uint32_t>(0xfb03)));
+      test::ok(!iter.Next(), "Is nothing");
+    });
   });
 }
 

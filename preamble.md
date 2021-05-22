@@ -26,4 +26,10 @@ In order to study assembly, examples are stored in `/asm`. Run the following cod
 ./make-asm simple-assignment
 ```
 
+## Building compile_commands.json for editor integration
+
+```
+./make-db.sh
+```
+
 ## Test output
