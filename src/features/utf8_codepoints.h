@@ -55,12 +55,3 @@ static const uint32_t C_w = 0x77;
 static const uint32_t C_x = 0x78;
 static const uint32_t C_y = 0x79;
 static const uint32_t C_z = 0x7A;
-
-// 2 bytes
-static const uint32_t C_COP = 0xA9;
-static const uint32_t C_34 = 0xBC;
-
-// 3 bytes
-static uint32_t C_Ꮳ = 0x13e3;
-static uint32_t C_Ꮃ = 0x13b3;
-static uint32_t C_Ꭹ = 0x13a9;

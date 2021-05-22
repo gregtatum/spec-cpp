@@ -11,30 +11,6 @@
 namespace features::utf8 {
 using namespace mozilla;
 
-const char *btb(int x) {
-  auto b = new char[9];
-  b[0] = '\0';
-
-  int z;
-  for (z = 128; z > 0; z >>= 1) {
-    strcat(b, ((x & z) == z) ? "1" : "0");
-  }
-
-  return b;
-}
-
-const char *btb(uint32_t x) {
-  auto b = new char[33];
-  b[0] = '\0';
-
-  uint32_t z;
-  for (z = 1 << 31; z > 0; z >>= 1) {
-    strcat(b, ((x & z) == z) ? "1" : "0");
-  }
-
-  return b;
-}
-
 /**
  * A custom string-handling class with UTF-8 support.
  */
@@ -125,51 +101,27 @@ public:
 
         out[0] = (b & 0b00111111) | (a << 6);
         out[1] = a >> 2;
-
-        // printf("(2) ");
       } else if (first_byte >> 4 == 0b1110) {
         uint8_t a = first_byte & 0b00001111;
         uint8_t b = mUtf8.mData[mIndex++] & 0b00111111;
         uint8_t c = mUtf8.mData[mIndex++] & 0b00111111;
 
-        // printf("a: %s\n", btb(a));
-        // printf("b: %s\n", btb(b));
-        // printf("c: %s\n", btb(c));
-
         out[0] = c | (b << 6);
         out[1] = (b >> 2) | a << 4;
-        // printf("(3) ");
-        // printf("%zu:    %s %s %s %s\n", mIndex - 1,
-        //        //
-        //        btb(out[0]), btb(out[1]), btb(out[2]), btb(out[3]));
-
-        // printf("utf8:     %s %s %s\n",
-        //        //
-        //        btb(mUtf8.mData[0]), btb(mUtf8.mData[1]), btb(mUtf8.mData[2]));
-
       } else if (first_byte >> 3 == 0b11110) {
         uint8_t a = first_byte & 0b00000111;
         uint8_t b = mUtf8.mData[mIndex++] & 0b00111111;
         uint8_t c = mUtf8.mData[mIndex++] & 0b00111111;
         uint8_t d = mUtf8.mData[mIndex++] & 0b00111111;
-        // ccdd_dddd
         out[0] = d | (c << 6);
-        // bbbb_cccc
         out[1] = (c >> 2) | b << 4;
-        // 00aa_aabb
         out[2] = (a << 2) | b >> 4;
 
-        // printf("(4) ");
       } else {
-        // printf("(1) ");
         out[0] = first_byte;
       }
 
       assert(mIndex <= mUtf8.mData.length());
-
-      // printf("%zu:    %s %s %s %s\n", mIndex - 1,
-      //        //
-      //        btb(out[0]), btb(out[1]), btb(out[2]), btb(out[3]));
 
       if constexpr (std::endian::native == std::endian::big) {
         return Some((out[0] << 24) | (out[1] << 16) | (out[2] << 8) | out[3]);
@@ -236,19 +188,19 @@ void run_tests() {
       test::ok(!iter.Next(), "Is nothing");
     });
 
-    test::describe("iterate on codepoint", []() {
+    test::describe("iterate on 3 byte cherokee letters", []() {
       auto string = UTF8::TryCreate("ᏣᎳᎩ").unwrap();
       auto iter = string.Iter();
 
-      test::equal(iter.Next(), Some(C_Ꮳ));
-      test::equal(iter.Next(), Some(C_Ꮃ));
-      test::equal(iter.Next(), Some(C_Ꭹ));
+      test::equal(iter.Next(), Some((uint32_t)0x13e3));
+      test::equal(iter.Next(), Some((uint32_t)0x13b3));
+      test::equal(iter.Next(), Some((uint32_t)0x13a9));
 
       test::ok(!iter.Next(), "Is nothing");
       test::ok(!iter.Next(), "Is nothing");
     });
 
-    test::describe("iterate on codepoint", []() {
+    test::describe("iterate on ascii ranged characters", []() {
       auto string = UTF8::TryCreate("greg").unwrap();
       auto iter = string.Iter();
 
@@ -261,12 +213,12 @@ void run_tests() {
       test::ok(!iter.Next(), "Is nothing");
     });
 
-    test::describe("iterate on codepoint", []() {
+    test::describe("iterate on 2 byte codepoints", []() {
       auto string = UTF8::TryCreate("¼©").unwrap();
       auto iter = string.Iter();
 
-      test::equal(iter.Next(), Some(C_34));
-      test::equal(iter.Next(), Some(C_COP));
+      test::equal(iter.Next(), Some((uint32_t)0x00BC));
+      test::equal(iter.Next(), Some((uint32_t)0x00A9));
 
       test::ok(!iter.Next(), "Is nothing");
     });
@@ -291,6 +243,35 @@ void run_tests() {
       test::equal(iter.Next(), Some(static_cast<uint32_t>(0xfb02)));
       test::equal(iter.Next(), Some(static_cast<uint32_t>(0xfb03)));
       test::ok(!iter.Next(), "Is nothing");
+    });
+
+    test::describe("iterate on 4 byte characters", []() {
+      auto string = UTF8::TryCreate("𓆣𓆉𓅪").unwrap();
+      auto iter = string.Iter();
+
+      test::equal(iter.Next(), Some(static_cast<uint32_t>(0x0131a3)));
+      test::equal(iter.Next(), Some(static_cast<uint32_t>(0x013189)));
+      test::equal(iter.Next(), Some(static_cast<uint32_t>(0x01316a)));
+      test::ok(!iter.Next(), "Is nothing");
+    });
+
+    test::describe("raw byte decoding", []() {
+      const unsigned char data[5] = {C_g, C_r, C_e, C_g, 0};
+      auto string = UTF8::TryCreate(data).unwrap();
+      auto iter = string.Iter();
+
+      test::equal(iter.Next(), Some(C_g));
+      test::equal(iter.Next(), Some(C_r));
+      test::equal(iter.Next(), Some(C_e));
+      test::equal(iter.Next(), Some(C_g));
+    });
+
+    test::describe("invalid encoding", []() {
+      // The first 0b11110000 signifies 4 bytes follow, while really the next is the
+      // ascii g character.
+      const unsigned char data[3] = {0b11110000, C_g, 0};
+      test::ok(UTF8::TryCreate(data).unwrapErr() == UTF8::Error::InvalidEncoding,
+               "Invalid encoding");
     });
   });
 }
