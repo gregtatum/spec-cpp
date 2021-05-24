@@ -273,6 +273,73 @@ void run_tests() {
       test::ok(UTF8::TryCreate(data).unwrapErr() == UTF8::Error::InvalidEncoding,
                "Invalid encoding");
     });
+
+    test::describe("basic emoji on the supplementary plane", []() {
+      auto string = UTF8::TryCreate("👍😅😜").unwrap();
+      auto iter = string.Iter();
+
+      test::equal(iter.Next(), Some(static_cast<uint32_t>(0x01f44d)));
+      test::equal(iter.Next(), Some(static_cast<uint32_t>(0x01f605)));
+      test::equal(iter.Next(), Some(static_cast<uint32_t>(0x01f61c)));
+      test::ok(!iter.Next(), "Is nothing");
+    });
+
+    test::describe("skin tones use the fitzpatrick modifiers", []() {
+      auto string = UTF8::TryCreate("✋🏽").unwrap();
+      auto iter = string.Iter();
+
+      test::equal(iter.Next(), Some(static_cast<uint32_t>(0x00270b)), "Raised hand");
+      test::equal(iter.Next(), Some(static_cast<uint32_t>(0x01f3fd)),
+                  "Emoji Modifier Fitzpatrick Type-4");
+      test::ok(!iter.Next(), "Is nothing");
+    });
+
+    test::describe("zero width space", []() {
+      auto string = UTF8::TryCreate("​").unwrap();
+      auto iter = string.Iter();
+
+      test::equal(iter.Next(), Some(static_cast<uint32_t>(0x200B)), "zero width space");
+      test::ok(!iter.Next(), "Is nothing");
+    });
+
+    test::describe("grapheme cluster", []() {
+      auto string = UTF8::TryCreate("yy̆").unwrap();
+      auto iter = string.Iter();
+
+      test::equal(iter.Next(), Some(static_cast<uint32_t>(0x0079)),
+                  "ascii y as expected");
+      test::equal(iter.Next(), Some(static_cast<uint32_t>(0x0079)),
+                  "start of a grapheme cluster with an ascii y");
+      test::equal(iter.Next(), Some(static_cast<uint32_t>(0x0306)),
+                  "the combining breve completes the grapheme cluster");
+      test::ok(!iter.Next(), "Is nothing");
+    });
+
+    test::describe("more fun with combining diacritical marks", []() {
+      // https://en.wikipedia.org/wiki/Combining_Diacritical_Marks
+      auto string = UTF8::TryCreate("y̆̆").unwrap();
+      auto iter = string.Iter();
+
+      test::equal(iter.Next(), Some(static_cast<uint32_t>(0x0079)),
+                  "start of a grapheme cluster with an ascii y");
+      test::equal(iter.Next(), Some(static_cast<uint32_t>(0x0306)),
+                  "first combining breve");
+      test::equal(iter.Next(), Some(static_cast<uint32_t>(0x0306)),
+                  "second combining breve");
+      test::ok(!iter.Next(), "Is nothing");
+    });
+
+    test::describe("even more fun with combining diacritical marks", []() {
+      //
+      auto string = UTF8::TryCreate("y̆̆̆̆̆̆̆̆̆̆̆").unwrap();
+      auto iter = string.Iter();
+      test::equal(iter.Next(), Some(static_cast<uint32_t>(0x0079)),
+                  "start of a grapheme cluster with an ascii y");
+      for (size_t i = 0; i < 11; i++) {
+        test::equal(iter.Next(), Some(static_cast<uint32_t>(0x0306)), "breve");
+      }
+      test::ok(!iter.Next(), "Is nothing");
+    });
   });
 }
 
