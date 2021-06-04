@@ -1,6 +1,10 @@
 #include "../test.h"
 
 namespace features::const_test {
+
+static void takeMutable(void *v) {}
+static void takeConst(const void *v) {}
+
 void run_tests() {
   test::suite("features::const_test", []() {
     test::describe("object of const type, 'const-qualified type'", []() {
@@ -195,6 +199,29 @@ void run_tests() {
       Value::TakeConst(value);
 
       test::equal(value.number, 0, "");
+    });
+
+    test::describe("const pointers as data member", []() {
+      struct Object {
+        void *mutablePointer = nullptr;
+        const void *constPointer = nullptr;
+      };
+
+      Object mutableObj{};
+      const Object constObj{};
+
+      takeConst(mutableObj.mutablePointer);
+      takeConst(constObj.mutablePointer);
+      takeMutable(mutableObj.mutablePointer);
+      takeMutable(constObj.mutablePointer);
+      takeConst(mutableObj.constPointer);
+      takeConst(constObj.constPointer);
+
+      // Candidate function not viable: 1st argument ('const void *') would lose const
+      // qualifier:
+
+      // takeMutable(mutableObj.constPointer);
+      // takeMutable(constObj.constPointer);
     });
   });
 }
