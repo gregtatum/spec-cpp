@@ -464,6 +464,78 @@ void run_tests() {
       test::equal(destructed, 2, "Destructed");
     });
 
+    test::describe("Test custom move operator", []() {
+      static int constructed = 0;
+      static int destructed = 0;
+      static int moved1 = 0;
+      static int moved2 = 0;
+      static bool hasmOwnedPointer = false;
+
+      class AutoObj {
+      public:
+        // Transfer ownership of the UEnumeration in the move constructor.
+        AutoObj(AutoObj &&other) noexcept {
+          moved1++;
+          mOwnedPointer = other.mOwnedPointer;
+          other.mOwnedPointer = nullptr;
+        }
+
+        // Transfer ownership of the UEnumeration in the move assignment operator.
+        AutoObj &operator=(AutoObj &&other) noexcept {
+          if (this != &other) {
+            if (mOwnedPointer) {
+              hasmOwnedPointer = true;
+            }
+            mOwnedPointer = other.mOwnedPointer;
+            other.mOwnedPointer = nullptr;
+            moved2++;
+          }
+          return *this;
+        }
+
+        static AutoObj *ConstructThenPoint(int *p) {
+          AutoObj obj{p};
+          return new AutoObj(std::move(obj));
+        }
+
+        int GetValue() { return *mOwnedPointer; }
+
+        AutoObj(int *aOwnedPointer) : mOwnedPointer(aOwnedPointer) { constructed++; }
+        ~AutoObj() { destructed++; }
+
+        int *mOwnedPointer = nullptr;
+      };
+
+      int i = 0;
+      int j = 1;
+
+      test::equal(constructed, 0, "Constructed 0");
+      test::equal(destructed, 0, "Destructed 0");
+      test::equal(moved1, 0, "Moved 0");
+
+      AutoObj objA = AutoObj{&i};
+
+      test::equal(constructed, 1, "Constructed 1");
+      test::equal(destructed, 0, "Destructed 0");
+      test::equal(moved1, 0, "Moved 0");
+
+      AutoObj objB = AutoObj{&j};
+
+      test::equal(constructed, 2, "Constructed");
+      test::equal(destructed, 0, "Destructed");
+      test::equal(moved1, 0, "Moved1");
+      test::equal(moved2, 0, "Moved2");
+      test::ok(!hasmOwnedPointer, "hasmOwnedPointer false");
+
+      objB = std::move(objA);
+
+      test::equal(constructed, 2, "Constructed");
+      test::equal(destructed, 0, "Destructed");
+      test::equal(moved1, 0, "Moved1");
+      test::equal(moved2, 1, "Moved2");
+      test::ok(hasmOwnedPointer, "hasmOwnedPointer true");
+    });
+
     test::describe("Uninitialized pointer values", []() {
       // Why you should initialize pointers to nullptr, just to be safe.
       class Example {
