@@ -22,7 +22,19 @@ template <typename T> void ignoreRValue(T &&value){};
 
 template <typename A, typename B>
 void equal(A a, B b, const std::string &message = std::string{"A and B are equal"}) {
-  if constexpr (std::is_same<A, B>::value) {
+  if constexpr ((std::is_same_v<A, const char *> || std::is_same_v<A, char *>)&&(
+                    std::is_same_v<B, const char *> || std::is_same_v<B, char *>)) {
+    // Compare const char*
+    if (strcmp(a, b) == 0) {
+      std::cout << GREEN << "    ✔ " << RESET << WHITE << message << RESET << "\n";
+    } else {
+      std::cout << RED << "    𝘅 " << message << RESET << "\n\n";
+      std::cout << GREEN << "expected string: " << b << RESET << "\n";
+      std::cout << RED << "received string: " << a << RESET << "\n\n";
+      throw std::string(message);
+    }
+  } else if constexpr (std::is_same<A, B>::value) {
+    // The most typical comparison.
     if (a != b) {
       std::cout << RED << "    𝘅 " << message << RESET << "\n\n";
       std::cout << GREEN << "expected: " << b << RESET << "\n";
@@ -31,21 +43,19 @@ void equal(A a, B b, const std::string &message = std::string{"A and B are equal
     } else {
       std::cout << GREEN << "    ✔ " << RESET << WHITE << message << RESET << "\n";
     }
-  } else {
-    if constexpr (std::is_same<A, std::string_view>::value &&
-                  (std::is_same<B, const char *>::value)) {
-      std::string_view bStringView{b};
-      if (a != bStringView) {
-        std::cout << RED << "    𝘅 " << message << RESET << "\n\n";
-        std::cout << GREEN << "expected: " << b << RESET << "\n";
-        std::cout << RED << "received: " << a << RESET << "\n\n";
-        throw std::string(message);
-      } else {
-        std::cout << GREEN << "    ✔ " << RESET << WHITE << message << RESET << "\n";
-      }
+  } else if constexpr (std::is_same<A, std::string_view>::value &&
+                       (std::is_same<B, const char *>::value)) {
+    std::string_view bStringView{b};
+    if (a != bStringView) {
+      std::cout << RED << "    𝘅 " << message << RESET << "\n\n";
+      std::cout << GREEN << "expected: " << b << RESET << "\n";
+      std::cout << RED << "received: " << a << RESET << "\n\n";
+      throw std::string(message);
     } else {
-      static_assert(std::is_same<A, B>::value, "The two types are not equal");
+      std::cout << GREEN << "    ✔ " << RESET << WHITE << message << RESET << "\n";
     }
+  } else {
+    static_assert(std::is_same<A, B>::value, "The two types are not equal");
   }
 }
 
