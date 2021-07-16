@@ -41,22 +41,18 @@ void run_tests() {
         return;
       }
 
-      UnicodeString pattern =
-          generator->getBestPattern(UnicodeString("MMMd"), status);
+      UnicodeString pattern = generator->getBestPattern(UnicodeString("MMMd"), status);
 
       std::string patternStr;
       pattern.toUTF8String(patternStr);
 
-      test::equal(toString(pattern), std::string("MMM d"),
-                  "A pattern can be generated.");
+      test::equal(toString(pattern), std::string("MMM d"), "A pattern can be generated.");
 
-      SimpleDateFormat *formatter =
-          new SimpleDateFormat(pattern, locale, status);
+      SimpleDateFormat *formatter = new SimpleDateFormat(pattern, locale, status);
       GregorianCalendar calendar(2020, 0, 20, 14, 5, status);
 
       UnicodeString formatted;
-      formatted =
-          formatter->format(calendar.getTime(status), formatted, status);
+      formatted = formatter->format(calendar.getTime(status), formatted, status);
 
       test::equal(toString(formatted), std::string("Jan 20"),
                   "The date can be formatted");
@@ -72,8 +68,7 @@ void run_tests() {
         return;
       }
 
-      UnicodeString pattern =
-          generator->getBestPattern(UnicodeString("hm zzzz"), status);
+      UnicodeString pattern = generator->getBestPattern(UnicodeString("hm zzzz"), status);
 
       std::string patternStr;
       pattern.toUTF8String(patternStr);
@@ -81,16 +76,13 @@ void run_tests() {
       test::equal(toString(pattern), std::string("h:mm a zzzz"),
                   "A pattern can be generated.");
 
-      SimpleDateFormat *formatter =
-          new SimpleDateFormat(pattern, locale, status);
+      SimpleDateFormat *formatter = new SimpleDateFormat(pattern, locale, status);
       GregorianCalendar calendar(2020, 0, 20, 14, 5, status);
 
       UnicodeString formatted;
-      formatted =
-          formatter->format(calendar.getTime(status), formatted, status);
+      formatted = formatter->format(calendar.getTime(status), formatted, status);
 
-      test::equal(toString(formatted),
-                  std::string("2:05 PM Central Standard Time"),
+      test::equal(toString(formatted), std::string("2:05 PM Central Standard Time"),
                   "The date can be formatted");
     });
 
@@ -115,16 +107,13 @@ void run_tests() {
       test::equal(toString(pattern), std::string("EEE, MMM d, y, h:mm a"),
                   "A pattern can be generated.");
 
-      SimpleDateFormat *formatter =
-          new SimpleDateFormat(pattern, locale, status);
+      SimpleDateFormat *formatter = new SimpleDateFormat(pattern, locale, status);
       GregorianCalendar calendar(2020, 0, 20, 14, 5, status);
 
       UnicodeString formatted;
-      formatted =
-          formatter->format(calendar.getTime(status), formatted, status);
+      formatted = formatter->format(calendar.getTime(status), formatted, status);
 
-      test::equal(toString(formatted),
-                  std::string("Mon, Jan 20, 2020, 2:05 PM"),
+      test::equal(toString(formatted), std::string("Mon, Jan 20, 2020, 2:05 PM"),
                   "The date can be formatted");
     });
 
@@ -158,25 +147,20 @@ void run_tests() {
         return;
       }
 
-      UnicodeString pattern =
-          generator->getBestPattern(UnicodeString(""), status);
+      UnicodeString pattern = generator->getBestPattern(UnicodeString(""), status);
 
       std::string patternStr;
       pattern.toUTF8String(patternStr);
 
-      test::equal(toString(pattern), std::string(""),
-                  "A pattern can be generated.");
+      test::equal(toString(pattern), std::string(""), "A pattern can be generated.");
 
-      SimpleDateFormat *formatter =
-          new SimpleDateFormat(pattern, locale, status);
+      SimpleDateFormat *formatter = new SimpleDateFormat(pattern, locale, status);
       GregorianCalendar calendar(2020, 0, 20, 14, 5, status);
 
       UnicodeString formatted;
-      formatted =
-          formatter->format(calendar.getTime(status), formatted, status);
+      formatted = formatter->format(calendar.getTime(status), formatted, status);
 
-      test::equal(toString(formatted), std::string(""),
-                  "The date can be formatted");
+      test::equal(toString(formatted), std::string(""), "The date can be formatted");
     });
 
     test::describe("fixed decimal format approximation", []() {
@@ -189,8 +173,7 @@ void run_tests() {
                         .toString(status);
 
       test::ok(!U_FAILURE(status), "Formatting had no errors.");
-      test::equal(toString(result), std::string("1,234"),
-                  "The number can be formatted.");
+      test::equal(toString(result), std::string("1,234"), "The number can be formatted.");
     });
 
     test::describe("fixed decimal format approximation", []() {
@@ -217,8 +200,48 @@ void run_tests() {
                         .toString(status);
 
       test::ok(!U_FAILURE(status), "Formatting had no errors.");
-      test::equal(toString(result), std::string("1,235"),
-                  "The number can be formatted.");
+      test::equal(toString(result), std::string("1,235"), "The number can be formatted.");
+    });
+
+    test::describe("h11 time", []() {
+      Locale locale("ja");
+      UErrorCode status = U_ZERO_ERROR;
+      DateTimePatternGenerator *generator =
+          DateTimePatternGenerator::createInstance(locale, status);
+      if (U_FAILURE(status)) {
+        test::ok(false, "Unable to generate the DateTimePatternGenerator");
+        return;
+      }
+
+      UnicodeString pattern = generator->getBestPattern(UnicodeString("hm"), status);
+
+      std::string patternStr;
+      pattern.toUTF8String(patternStr);
+
+      test::equal(toString(pattern), std::string("aK:mm"),
+                  "A pattern can be generated with the K symbol.");
+
+      for (size_t i = 0; i < 24; i++) {
+        SimpleDateFormat *formatter = new SimpleDateFormat(pattern, locale, status);
+
+        GregorianCalendar calendar(2020, 0, 20, i, 0, status);
+        UnicodeString formatted;
+        formatted = formatter->format(calendar.getTime(status), formatted, status);
+        printf(" - K %zu %s\n", i, toString(formatted).c_str());
+      }
+
+      UnicodeString pattern2 = "ah:mm";
+      for (size_t i = 0; i < 24; i++) {
+        SimpleDateFormat *formatter = new SimpleDateFormat(pattern2, locale, status);
+
+        GregorianCalendar calendar(2020, 0, 20, i, 0, status);
+        UnicodeString formatted;
+        formatted = formatter->format(calendar.getTime(status), formatted, status);
+        printf(" - h %zu %s\n", i, toString(formatted).c_str());
+      }
+
+      // test::equal(toString(formatted), std::string("午後2:05"),
+      //             "The date can be formatted");
     });
   });
 }
