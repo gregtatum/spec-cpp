@@ -244,6 +244,28 @@ void run_tests() {
       //             "The date can be formatted");
     });
   });
+
+  test::describe("Locale canonicalization", []() {
+    test::equal(Locale::createCanonical("en-US").getBaseName(), "en_US",
+                "Canonicalizes en-US");
+    test::equal(Locale::createCanonical("en-US-posix").getBaseName(), "en_US_POSIX",
+                "Canonicalizes POSIX");
+    test::equal(Locale::createCanonical("und").getBaseName(), "",
+                "und gets changed to an empty string");
+    test::equal(Locale::createCanonical("asdf").getBaseName(), "asdf",
+                "retains incorrect locales");
+    test::equal(Locale::createCanonical("es-es").getBaseName(), "es_ES",
+                "makes text uppercase");
+    test::equal(Locale::createCanonical("👍").getBaseName(), "👍",
+                "Accepts non-ascii inputs");
+    test::equal(Locale::createCanonical("en-USA").getBaseName(), "en_US",
+                "Converts 3 letter country codes to 2 letter.");
+    test::equal(Locale::createCanonical("fr-fr@EURO").getBaseName(), "fr_FR_EURO",
+                "Does not perform level 2 canonicalization where the result would be "
+                "fr_FR@currency=EUR");
+    test::equal(Locale::createCanonical("ar-MA.utf8").getBaseName(), "ar_MA",
+                "Removes the .utf8 ends");
+  });
 }
 
 } // namespace icu
