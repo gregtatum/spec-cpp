@@ -6,6 +6,7 @@
 #include "mfbt/Span.h"
 #include "mfbt/UniquePtr.h"
 #include "mfbt/Vector.h"
+#include <cassert>
 #include <string_view>
 
 namespace features::utf8 {

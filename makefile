@@ -1,7 +1,7 @@
 include makefile-icu.mk
 
 DEBUG := -g -O0
-CFLAGS := -Wall -Werror -std=c++2a $(DEBUG)
+CFLAGS := -Wall -Werror -stdlib=libc++ -std=c++2a -pthread $(DEBUG)
 LIB := $(ICULIBS)
 INCLUDES := -I includes
 

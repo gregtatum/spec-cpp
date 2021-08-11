@@ -1,5 +1,6 @@
 #include "../test.h"
 #include "./Allocator.h"
+#include <cassert>
 #include <unistd.h>
 #include <math.h>
 #pragma clang diagnostic ignored "-Wdeprecated-declarations"

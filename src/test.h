@@ -1,6 +1,7 @@
 #pragma once
 #include <iostream>
 #include <string_view>
+#include <functional>
 
 namespace test {
 
