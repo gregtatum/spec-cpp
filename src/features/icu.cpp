@@ -86,6 +86,66 @@ void run_tests() {
                   "The date can be formatted");
     });
 
+    test::describe("garbage skeletons Latin1", []() {
+      Locale locale("en");
+      UErrorCode status = U_ZERO_ERROR;
+      DateTimePatternGenerator *generator =
+          DateTimePatternGenerator::createInstance(locale, status);
+      if (U_FAILURE(status)) {
+        test::ok(false, "Unable to generate the DateTimePatternGenerator");
+        return;
+      }
+
+      UnicodeString pattern = generator->getBestPattern(
+          UnicodeString("E, M/d/y ('week': w), h a ('second': s)"), status);
+
+      std::string patternStr;
+      pattern.toUTF8String(patternStr);
+
+      test::equal(toString(pattern),
+                  std::string("EEE, M/d/y ('week': w), h a ('second': s)"),
+                  "A pattern can be generated.");
+
+      SimpleDateFormat *formatter = new SimpleDateFormat(pattern, locale, status);
+      GregorianCalendar calendar(2020, 0, 20, 14, 5, status);
+
+      UnicodeString formatted;
+      formatted = formatter->format(calendar.getTime(status), formatted, status);
+
+      test::equal(toString(formatted),
+                  std::string("Mon, 1/20/2020 (week: 4), 2 PM (second: 0)"),
+                  "The date can be formatted");
+    });
+
+    test::describe("garbage skeletons beyond the bmp", []() {
+      Locale locale("en");
+      UErrorCode status = U_ZERO_ERROR;
+      DateTimePatternGenerator *generator =
+          DateTimePatternGenerator::createInstance(locale, status);
+      if (U_FAILURE(status)) {
+        test::ok(false, "Unable to generate the DateTimePatternGenerator");
+        return;
+      }
+
+      UnicodeString pattern =
+          generator->getBestPattern(UnicodeString("👍 this is we◌ᷣird"), status);
+
+      std::string patternStr;
+      pattern.toUTF8String(patternStr);
+
+      test::equal(toString(pattern), std::string(" ('day': d E), h a ('second': s)"),
+                  "A pattern can be generated.");
+
+      SimpleDateFormat *formatter = new SimpleDateFormat(pattern, locale, status);
+      GregorianCalendar calendar(2020, 0, 20, 14, 5, status);
+
+      UnicodeString formatted;
+      formatted = formatter->format(calendar.getTime(status), formatted, status);
+
+      test::equal(toString(formatted), std::string(" (day: 20 Mon), 2 PM (second: 0)"),
+                  "The date can be formatted");
+    });
+
     test::describe("combine date and time when formatting dates", []() {
       // Apply this field:
       // https://github.com/unicode-org/cldr-json/blob/master/cldr-json/cldr-dates-full/main/en-US-POSIX/ca-gregorian.json#L336
