@@ -223,6 +223,47 @@ void run_tests() {
       // takeMutable(mutableObj.constPointer);
       // takeMutable(constObj.constPointer);
     });
+
+    test::describe("const references", []() {
+      struct Value {
+        int number = 0;
+        static void changeValue(Value &v) {
+          v.number = 5;
+          v.constMethod();
+          // v.mutMethod();
+        }
+        static void takeConst(Value const &v) {
+          v.constMethod();
+          // v.mutMethod();
+          // > 'this' argument to member function 'mutMethod' has type 'const Value', but
+          // > function is not marked const
+        }
+        void constMethod() const {}
+        void mutMethod() {}
+      };
+
+      const Value constValue{};
+      Value mutValue{};
+
+      test::equal(constValue.number, 0);
+      test::equal(mutValue.number, 0);
+
+      // Value::changeValue(constValue);
+      // > Binding reference of type 'Value' to value of type 'const Value' drops 'const'
+      // > qualifier
+      Value::changeValue(mutValue);
+      test::equal(mutValue.number, 5);
+
+      Value::takeConst(mutValue);
+      Value::takeConst(constValue);
+
+      mutValue.constMethod();
+      mutValue.mutMethod();
+      constValue.constMethod();
+      // constValue.mutMethod();
+      // > 'this' argument to member function 'mutMethod' has type 'const Value', but
+      // > function is not marked const
+    });
   });
 }
 } // namespace features::const_test
