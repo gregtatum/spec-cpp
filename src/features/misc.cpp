@@ -3,7 +3,16 @@
 namespace features {
 namespace misc {
 
-const char *getFuncName() { return __func__; }
+const char *getIdentifier__func__() { return __func__; }
+const char *getIdentifier__FUNCTION__() { return __FUNCTION__; }
+const char *getIdentifier__PRETTY_FUNCTION__() { return __PRETTY_FUNCTION__; }
+const int getIdentifier__LINE__() { return __LINE__; }
+
+class MyClass {
+public:
+  static const char *getIdentifier__func__() { return __func__; }
+  static const char *getIdentifier__PRETTY_FUNCTION__() { return __PRETTY_FUNCTION__; }
+};
 
 void run_tests() {
   test::suite("features::initialization", []() {
@@ -159,8 +168,35 @@ void run_tests() {
   });
 
   test::suite("features::identifiers", []() {
-    test::describe("std::string", []() {
-      test::equal(getFuncName(), "getFuncName", "Gets the name of the function.");
+    test::describe("test predefined identifiers", []() {
+      test::equal(getIdentifier__func__(), "getIdentifier__func__",
+                  "Gets the name of the function.");
+      test::equal(getIdentifier__FUNCTION__(), "getIdentifier__FUNCTION__",
+                  "Gets the name of the function.");
+      test::equal(getIdentifier__PRETTY_FUNCTION__(),
+                  "const char *features::misc::getIdentifier__PRETTY_FUNCTION__()",
+                  "Get the pretty function name");
+      test::equal(getIdentifier__LINE__(), 9, "The line matches.");
+      test::equal(__FILE_NAME__, "misc.cpp", "The file name");
+      test::equal(__FILE__, "src/features/misc.cpp", "The file path");
+    });
+
+    test::describe("predefined in a class", []() {
+      test::equal(MyClass::getIdentifier__func__(), "getIdentifier__func__",
+                  "The method name does not include the class.");
+      test::equal(MyClass::getIdentifier__PRETTY_FUNCTION__(),
+                  "static const char "
+                  "*features::misc::MyClass::getIdentifier__PRETTY_FUNCTION__()",
+                  "The method name does not include the class.");
+    });
+
+    test::describe("lambda identifiers", []() {
+      test::equal(__func__, "operator()", "It's just the operator");
+      test::equal(__FUNCTION__, "operator()", "It's just the operator");
+      test::equal(__PRETTY_FUNCTION__,
+                  "auto features::misc::run_tests()::(anonymous "
+                  "class)::operator()()::(anonymous class)::operator()() const",
+                  "The pretty lambda name");
     });
   });
 }
