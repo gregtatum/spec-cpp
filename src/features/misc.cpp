@@ -3,15 +3,57 @@
 namespace features {
 namespace misc {
 
+const char *getFuncName() { return __func__; }
+
 void run_tests() {
+  test::suite("features::initialization", []() {
+    test::describe("value initialization", []() {
+      int32_t a;
+      int32_t b = 0;
+      int32_t c{};
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wuninitialized"
+      test::ok(a != 0, "Value is uninitialized.");
+#pragma GCC diagnostic pop
+
+      //
+      test::ok(b == 0, "Value is assigned.");
+      // https://en.cppreference.com/w/cpp/language/value_initialization
+      test::ok(c == 0, "Value is value initialized.");
+    });
+
+    test::describe("value initialization", []() {
+      struct MyStruct {
+        int32_t value;
+        int32_t valueInitialized = 5;
+      };
+      MyStruct a;
+
+      test::ok(a.value != 0, "Value is uninitialized.");
+      test::equal(a.valueInitialized, 5, "Value is default initialized.");
+
+      MyStruct b{};
+      test::equal(b.value, 0, "Value is value initialized: zero-initialized");
+      test::equal(b.valueInitialized, 5, "Value is default initialized.");
+
+      // This is a function declaration:
+      // MyStruct invalid();
+
+      // This is a function declaration:
+      MyStruct c = MyStruct();
+      test::equal(c.value, 0, "Value is value initialized: zero-initialized");
+      test::equal(c.valueInitialized, 5, "Value is default initialized.");
+    });
+  });
+
   test::suite("features::misc", []() {
     test::describe("std::string", []() {
       std::string string{"lorem ipsum"};
       std::string_view string_view{string};
 
       test::equal(string, std::string{"lorem ipsum"}, "String comparison");
-      test::equal(string_view, std::string_view{"lorem ipsum"},
-                  "String view comparison");
+      test::equal(string_view, std::string_view{"lorem ipsum"}, "String view comparison");
     });
 
     test::describe("constexpr", []() {
@@ -26,8 +68,7 @@ void run_tests() {
       test::equal(rect.area(), 200, "The area is computed at compile time.");
 
       Rectangle mutable_rect{10, 20};
-      test::equal(mutable_rect.area(), 200,
-                  "The area is computed at run time.");
+      test::equal(mutable_rect.area(), 200, "The area is computed at run time.");
 
       mutable_rect.h = 20;
       test::equal(mutable_rect.area(), 400,
@@ -50,8 +91,7 @@ void run_tests() {
         using std::string;
         string b{""};
         test::ignore(b);
-        test::info(
-            "Namespaces can be used individually to simplify namespaces");
+        test::info("Namespaces can be used individually to simplify namespaces");
       }
       test::info("'using' is bound by lexical scopes");
       COMPILER_ERROR(string c{""});
@@ -115,6 +155,12 @@ void run_tests() {
       a++;
       b++;
       test::equal(add(), 12, "b is explicitly copied, while a is by reference");
+    });
+  });
+
+  test::suite("features::identifiers", []() {
+    test::describe("std::string", []() {
+      test::equal(getFuncName(), "getFuncName", "Gets the name of the function.");
     });
   });
 }
