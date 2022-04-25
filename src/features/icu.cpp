@@ -536,6 +536,24 @@ void run_tests() {
       test::equal(Locale::createCanonical("ar-MA.utf8").getBaseName(), "ar_MA",
                   "Removes the .utf8 ends");
     });
+
+    test::describe("fractional second", []() {
+      auto maxString = std::string("05:00.0000000000000");
+      test::equal(test_pattern("mm:ss.S"), std::string("05:00.0"));
+      test::equal(test_pattern("mm:ss.SS"), std::string("05:00.00"));
+      test::equal(test_pattern("mm:ss.SSS"), std::string("05:00.000"));
+      test::equal(test_pattern("mm:ss.SSSS"), std::string("05:00.0000"));
+      test::equal(test_pattern("mm:ss.SSSSS"), std::string("05:00.00000"));
+      test::equal(test_pattern("mm:ss.SSSSSS"), std::string("05:00.000000"));
+      test::equal(test_pattern("mm:ss.SSSSSSS"), std::string("05:00.0000000"));
+      test::equal(test_pattern("mm:ss.SSSSSSSS"), std::string("05:00.00000000"));
+      test::equal(test_pattern("mm:ss.SSSSSSSSS"), std::string("05:00.000000000"));
+      test::equal(test_pattern("mm:ss.SSSSSSSSSS"), std::string("05:00.0000000000"));
+      test::equal(test_pattern("mm:ss.SSSSSSSSSSS"), std::string("05:00.00000000000"));
+      test::equal(test_pattern("mm:ss.SSSSSSSSSSSS"), std::string("05:00.000000000000"));
+      test::equal(test_pattern("mm:ss.SSSSSSSSSSSSS"), maxString, "13 digits is the max");
+      test::equal(test_pattern("mm:ss.SSSSSSSSSSSSSSSSSSSSSSSSS"), maxString);
+    });
   });
 }
 
