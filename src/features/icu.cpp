@@ -515,6 +515,38 @@ void run_tests() {
       test::equal(skeletons.Format("A"), std::string("50700000"), "Format for A");
     });
 
+    test::describe("fractional seconds", []() {
+      {
+        SkeletonTestingUtility skeletons(Locale("en"), 2020, 0, 20, 14, 5);
+        test::equal(skeletons.Pattern("hms"), std::string("h:mm:ss a"),
+                    "Pattern for hms");
+        test::equal(skeletons.Format("hms"), std::string("2:05:00 PM"), "Format for hms");
+        test::equal(skeletons.Pattern("hmsS"), std::string("h:mm:ss.S a"),
+                    "Pattern for hms");
+        test::equal(skeletons.Format("hmsS"), std::string("2:05:00.0 PM"),
+                    "Format for hms");
+        test::equal(skeletons.Pattern("hmsSSSS"), std::string("h:mm:ss.SSSS a"),
+                    "Pattern for hms");
+        test::equal(skeletons.Format("hmsSSSS"), std::string("2:05:00.0000 PM"),
+                    "Format for hms");
+      }
+      {
+        SkeletonTestingUtility skeletons(Locale("es"), 2020, 0, 20, 14, 5);
+        test::equal(skeletons.Pattern("hms"), std::string("h:mm:ss a"),
+                    "Pattern for hms");
+        test::equal(skeletons.Format("hms"), std::string("2:05:00 p. m."),
+                    "Format for hms");
+        test::equal(skeletons.Pattern("hmsS"), std::string("h:mm:ss,S a"),
+                    "Pattern for hms");
+        test::equal(skeletons.Format("hmsS"), std::string("2:05:00,0 p. m."),
+                    "Format for hms");
+        test::equal(skeletons.Pattern("hmsSSSS"), std::string("h:mm:ss,SSSS a"),
+                    "Pattern for hms");
+        test::equal(skeletons.Format("hmsSSSS"), std::string("2:05:00,0000 p. m."),
+                    "Format for hms");
+      }
+    });
+
     test::describe("Locale canonicalization", []() {
       test::equal(Locale::createCanonical("en-US").getBaseName(), "en_US",
                   "Canonicalizes en-US");
